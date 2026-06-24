@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2f6f8f" />
+  <title>Our Family Adventures</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div id="splash" class="splash">
+    <div class="splash-card">
+      <div class="brand-mark">🌊</div>
+      <h1>Our Family Adventures</h1>
+      <p>Plan together. Travel together. Make memories together.</p>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="hero-overlay">
+      <div class="topbar">
+        <button id="menuBtn" class="ghost">☰</button>
+        <div>
+          <h1>Our Family Adventures</h1>
+          <p id="tripSubtitle">Family Beach Trip 2027</p>
+        </div>
+        <button id="installBtn" class="ghost hidden">Install</button>
+      </div>
+      <div class="countdown-card">
+        <span class="eyebrow">Next adventure</span>
+        <h2 id="tripName">Beach Vacation 2027</h2>
+        <div id="countdown" class="countdown">Set your trip date</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside id="sideNav" class="side-nav">
+      <button data-tab="home" class="active">🏠 Home</button>
+      <button data-tab="trips">🌎 Trips</button>
+      <button data-tab="families">👨‍👩‍👧‍👦 Families</button>
+      <button data-tab="travel">✈️ Travel</button>
+      <button data-tab="lodging">🏡 Lodging</button>
+      <button data-tab="chat">💬 Chat</button>
+      <button data-tab="meals">🍽️ Meals</button>
+      <button data-tab="shopping">🛒 Shopping</button>
+      <button data-tab="packing">🧳 Packing</button>
+      <button data-tab="schedule">📅 Itinerary</button>
+      <button data-tab="budget">💰 Budget</button>
+      <button data-tab="memories">📸 Memories</button>
+      <button data-tab="guide">📍 Local Guide</button>
+      <button data-tab="documents">📄 Documents</button>
+      <button data-tab="settings">⚙️ Settings</button>
+    </aside>
+
+    <section class="content">
+      <div id="home" class="tab active"></div>
+      <div id="trips" class="tab"></div>
+      <div id="families" class="tab"></div>
+      <div id="travel" class="tab"></div>
+      <div id="lodging" class="tab"></div>
+      <div id="chat" class="tab"></div>
+      <div id="meals" class="tab"></div>
+      <div id="shopping" class="tab"></div>
+      <div id="packing" class="tab"></div>
+      <div id="schedule" class="tab"></div>
+      <div id="budget" class="tab"></div>
+      <div id="memories" class="tab"></div>
+      <div id="guide" class="tab"></div>
+      <div id="documents" class="tab"></div>
+      <div id="settings" class="tab"></div>
+    </section>
+  </main>
+
+  <template id="cardTemplate">
+    <article class="card"></article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
