@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#09283a" />
+  <meta name="description" content="Our Family Adventures brings the people we love closer together." />
+  <title>Our Family Adventures</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <section id="splash" class="screen active splash-screen" aria-label="Welcome screen">
+      <div class="photo-bg soft-focus"></div>
+      <div class="sun-glow"></div>
+      <div class="lighthouse-beam"></div>
+      <div class="veil"></div>
+      <div class="splash-copy">
+        <p class="kicker">Project Lighthouse</p>
+        <h1>Our Family<br/>Adventures</h1>
+        <p class="tagline">Life Is Better When We're Making Memories Together.</p>
+        <button class="gold-btn" data-go="welcome">Begin Our Journey</button>
+      </div>
+      <div class="ocean-ribbon" aria-hidden="true">
+        <span class="ribbon-wave wave-a"></span>
+        <span class="ribbon-wave wave-b"></span>
+        <span class="ribbon-wave wave-c"></span>
+      </div>
+    </section>
+
+    <section id="welcome" class="screen welcome-screen" aria-label="Welcome Home">
+      <div class="photo-bg warm-blur"></div>
+      <div class="veil dark"></div>
+      <div class="welcome-panel">
+        <p class="kicker">Chapter One · First Light</p>
+        <h2>Welcome Home</h2>
+        <p>Whether this is your first chapter, or you've been part of our story for years, we're glad you're here.</p>
+        <button class="gold-btn" data-go="home">Continue</button>
+      </div>
+      <div class="ocean-ribbon short" aria-hidden="true">
+        <span class="ribbon-wave wave-a"></span>
+        <span class="ribbon-wave wave-b"></span>
+      </div>
+    </section>
+
+    <main id="home" class="screen home-screen" aria-label="Home">
+      <header class="chapter-hero">
+        <div class="photo-bg home-photo"></div>
+        <div class="veil home-veil"></div>
+        <div class="topbar">
+          <button class="icon-btn" aria-label="Menu">☰</button>
+          <button class="icon-btn" aria-label="Notifications">♡</button>
+        </div>
+        <div class="chapter-copy">
+          <p class="kicker">Next Chapter</p>
+          <h2>Nags Head 2027</h2>
+          <p>The first chapter captured in Our Family Adventures.</p>
+          <div class="countdown-card" id="countdown">Planning has begun</div>
+        </div>
+      </header>
+
+      <section class="home-content">
+        <article class="welcome-home-card">
+          <p class="kicker">Welcome Home</p>
+          <h3>The next chapter is waiting to be written.</h3>
+          <p>Start here for updates, memories, conversations, and the people who make this adventure unforgettable.</p>
+        </article>
+
+        <div class="tile-grid">
+          <button class="feature-tile" data-go="chapters"><span>Chapters</span><small>Where every adventure begins.</small></button>
+          <button class="feature-tile" data-go="people"><span>The People Who Make This Adventure</span><small>Everyone belongs here.</small></button>
+          <button class="feature-tile" data-go="memories"><span>Memories</span><small>Photos, comments, favorites, and stories.</small></button>
+          <button class="feature-tile" data-go="chat"><span>Family Chat</span><small>A private place for excitement and updates.</small></button>
+          <button class="feature-tile" data-go="planning"><span>Adventure Planning</span><small>Lodging, meals, travel, packing, and more.</small></button>
+          <button class="feature-tile" data-go="story"><span>Our Story</span><small>The vision, Circle, and heart of the app.</small></button>
+        </div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button data-go="home">Home</button>
+        <button data-go="chapters">Chapters</button>
+        <button data-go="people">People</button>
+        <button data-go="memories">Memories</button>
+        <button data-go="chat">Chat</button>
+        <button data-go="story">Our Story</button>
+      </nav>
+    </main>
+
+    <section id="story" class="screen inner-screen" aria-label="Our Story">
+      <button class="back-btn" data-go="home">← Home</button>
+      <article class="story-page intro-story">
+        <p class="kicker">Our Story</p>
+        <h2>Every family has a story that began long before this app.</h2>
+        <p>Our Family Adventures wasn't created to replace those memories. It was created to help preserve the chapters we're writing today while honoring every adventure that came before.</p>
+        <p>Whether you're family by birth, by marriage, or simply one of the people we love, you are part of our story.</p>
+      </article>
+      <article class="story-page vision-card">
+        <p class="kicker">Our Vision</p>
+        <h2>Our Family Adventures brings the people we love closer together.</h2>
+      </article>
+      <article class="story-page circle-card">
+        <p class="kicker">The Circle</p>
+        <h2>A circle has no beginning and no end.</h2>
+        <p>No one stands at the front. No one stands behind. Every person is equally important. Every voice matters. Every smile is seen. Every memory belongs.</p>
+        <p><strong>Because circles don't have edges. They simply make room.</strong></p>
+      </article>
+      <article class="story-page">
+        <p class="kicker">Build with Heart</p>
+        <h2>Every Chapter. Every Feature. Every Memory.</h2>
+        <p>We will always ask: does this help bring the people we love closer together?</p>
+      </article>
+    </section>
+
+    <section id="people" class="screen inner-screen" aria-label="The People Who Make This Adventure">
+      <button class="back-btn" data-go="home">← Home</button>
+      <article class="story-page">
+        <p class="kicker">Everyone Belongs</p>
+        <h2>The People Who Make This Adventure</h2>
+        <p>Every person brings something unique. Together, they make this chapter unforgettable.</p>
+      </article>
+      <div class="people-list" id="peopleList"></div>
+      <form class="quick-form" id="peopleForm">
+        <input id="personName" placeholder="Add a person or adventure group" />
+        <button type="submit">Add</button>
+      </form>
+    </section>
+
+    <section id="memories" class="screen inner-screen" aria-label="Memories">
+      <button class="back-btn" data-go="home">← Home</button>
+      <article class="story-page">
+        <p class="kicker">Scrapbook Studio · Preview</p>
+        <h2>Every picture captures a moment. Every chapter tells the story.</h2>
+        <p>This first scrapbook preview starts the memory space. Photo uploads, comments, favorites, and scrapbook pages will grow here.</p>
+      </article>
+      <div class="scrapbook-spread">
+        <div class="paper-photo"></div>
+        <div class="paper-note">The chapter may be complete... but the story continues.</div>
+      </div>
+    </section>
+
+    <section id="chat" class="screen inner-screen" aria-label="Family Chat">
+      <button class="back-btn" data-go="home">← Home</button>
+      <article class="story-page">
+        <p class="kicker">Family Chat · Preview</p>
+        <h2>A private place to start the excitement.</h2>
+        <p>Firebase chat will connect here in a future build. For now, this preview shows the tone.</p>
+      </article>
+      <div class="chat-bubble">Who's ready for Nags Head?</div>
+      <div class="chat-bubble reply">Are you ready for the next chapter?</div>
+    </section>
+
+    <section id="planning" class="screen inner-screen" aria-label="Adventure Planning">
+      <button class="back-btn" data-go="home">← Home</button>
+      <article class="story-page">
+        <p class="kicker">Adventure Planning</p>
+        <h2>Everything the trip needs, without taking over the heart of the app.</h2>
+        <p>Lodging, travel, meals, packing, shopping, itinerary, and budget will live here.</p>
+      </article>
+    </section>
+
+    <section id="chapters" class="screen inner-screen" aria-label="Chapters">
+      <button class="back-btn" data-go="home">← Home</button>
+      <article class="story-page">
+        <p class="kicker">Chapters</p>
+        <h2>Where will our next chapter take us?</h2>
+        <p>Nags Head 2027 begins the first chapter captured in Our Family Adventures.</p>
+        <button class="gold-btn">Begin a New Chapter</button>
+      </article>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
