@@ -1,0 +1,10 @@
+{
+  "name":"Our Family Adventures",
+  "short_name":"Adventures",
+  "start_url":"./index.html",
+  "display":"standalone",
+  "background_color":"#fff8ed",
+  "theme_color":"#0e2f44",
+  "description":"Life Is Better When We're Making Memories Together.",
+  "icons":[{"src":"assets/lighthouse-home.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
+}
