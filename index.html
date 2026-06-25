@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Our Family Adventures</title>
+  <meta name="theme-color" content="#092231" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="splash" class="splash screen active">
+      <div class="photo-layer"></div><div class="veil"></div><div class="beam"></div><div class="waves"><span></span><span></span><span></span></div>
+      <div class="splash-content">
+        <p class="kicker">Project Lighthouse</p>
+        <h1>Our Family Adventures</h1>
+        <p class="tagline">Life Is Better When We're Making Memories Together.</p>
+        <button class="gold-btn" data-go="home">Begin Our Journey</button>
+      </div>
+    </section>
+
+    <main id="home" class="screen home">
+      <header class="hero">
+        <div class="photo-layer home-photo"></div><div class="veil home-veil"></div><div class="waves short"><span></span><span></span></div>
+        <button class="icon-btn menu-open" aria-label="Open menu">☰</button>
+        <button class="icon-btn heart-btn" aria-label="Open favorites">♡</button>
+        <div class="hero-copy">
+          <p class="kicker">Welcome Home</p>
+          <h2>Nags Head 2027</h2>
+          <p>The next chapter is waiting to be written.</p>
+          <div class="countdown"><strong id="countDays">—</strong> days until adventure</div>
+        </div>
+      </header>
+      <section class="content">
+        <div class="daily-card">
+          <h3>Today in Our Story</h3>
+          <p>Three planning updates are waiting. The lighthouse is shining, and the circle is growing.</p>
+        </div>
+        <div class="scroll-row">
+          <button class="feature-card" data-go="adventures"><b>Begin a New Chapter</b><span>Create trips, RSVPs, date/location proposals, and private planning.</span></button>
+          <button class="feature-card" data-go="travel"><b>Travel Plans</b><span>Airbnb links, flights, cars, weather, packing, and voting.</span></button>
+          <button class="feature-card" data-go="explore"><b>Explore Map</b><span>Add pins by address and open them in Google Maps.</span></button>
+          <button class="feature-card" data-go="memories"><b>Memories</b><span>Photos, videos, tags, comments, and favorites.</span></button>
+        </div>
+      </section>
+    </main>
+
+    <section id="adventures" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Chapters</h2></div>
+      <div class="panel"><h3>Create an Adventure</h3>
+        <div class="grid2"><input id="tripTitle" placeholder="Adventure name"><input id="tripLocation" placeholder="Location"><input id="tripStart" type="date"><input id="tripEnd" type="date"></div>
+        <textarea id="tripNotes" placeholder="Notes, hopes, house details, or anything the family should know"></textarea>
+        <label class="check"><input id="tripPrivate" type="checkbox"> Private planning details</label>
+        <button class="gold-btn" id="addTrip">Add Adventure</button>
+      </div>
+      <div class="panel"><h3>Suggest Changes</h3><div class="grid2"><input id="proposalDate" placeholder="Suggest new dates"><input id="proposalPlace" placeholder="Suggest new location"></div><button id="addProposal" class="navy-btn">Add Suggestion</button><div id="proposalList" class="list"></div></div>
+      <div id="tripList" class="list"></div>
+    </section>
+
+    <section id="people" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>The People Who Make This Adventure</h2></div>
+      <div class="panel"><input id="personName" placeholder="Name"><input id="personPhoto" placeholder="Profile photo URL (optional)"><button id="addPerson" class="gold-btn">Add Person</button></div><div id="peopleList" class="cards"></div>
+    </section>
+
+    <section id="travel" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Travel Plans</h2></div>
+      <div class="panel"><h3>Airbnb / VRBO / Hotel Voting</h3><input id="stayTitle" placeholder="Place name"><input id="stayUrl" placeholder="Paste link"><button id="addStay" class="gold-btn">Add Stay Option</button><div id="stayList" class="list"></div></div>
+      <div class="panel"><h3>Flights & Transportation</h3><div class="grid2"><input id="flightInfo" placeholder="Flight, airline, confirmation"><input id="carInfo" placeholder="Rental car / driving notes"></div><button id="saveTravel" class="navy-btn">Save Travel Notes</button><div id="travelNotes" class="note"></div></div>
+      <div class="panel"><h3>Weather</h3><p>Add the destination and use the map/weather link to check current forecasts.</p><button class="navy-btn" onclick="window.open('https://www.google.com/search?q=Nags+Head+weather','_blank')">Open Weather</button></div>
+    </section>
+
+    <section id="explore" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Explore Map</h2></div>
+      <div class="panel"><h3>Add a Pin</h3><input id="pinTitle" placeholder="Pin name"><input id="pinAddress" placeholder="Address or place"><button id="addPin" class="gold-btn">Add Pin</button><p class="small">Pins are based on the address/place you enter. Move a pin by editing its address.</p><div id="pinList" class="list"></div></div>
+    </section>
+
+    <section id="memories" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Memories</h2></div>
+      <div class="panel"><h3>Add Photos or Videos</h3><input id="memoryFile" type="file" accept="image/*,video/*" multiple><input id="memoryTitle" placeholder="Memory title"><input id="memoryTags" placeholder="Tag people: Melissa, Bob"><button id="addMemory" class="gold-btn">Add Memory</button></div><div id="memoryList" class="cards"></div>
+    </section>
+
+    <section id="chat" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Family Chat</h2></div>
+      <div class="panel"><div id="chatList" class="chat-list"></div><div class="chat-row"><input id="chatInput" placeholder="Message family... use @Name"><button id="sendChat" class="gold-btn">Send</button></div></div>
+    </section>
+
+    <section id="favorites" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Family Favorites</h2></div><div class="panel"><p>Favorite memories and places will collect here as your family uses the app.</p><div id="favList"></div></div></section>
+
+    <section id="story" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Our Story</h2></div><div class="panel story"><h3>Our Family Adventures brings the people we love closer together.</h3><p>Every family has a story that began long before this app. These pages help preserve the chapters we're writing today while honoring every adventure that came before.</p><h3>The Circle</h3><p>A circle has no beginning and no end. No one stands at the front. No one stands behind. Every person is equally important. Every voice matters. Every smile is seen. Every memory belongs.</p></div></section>
+
+    <nav class="bottom-nav"><button data-go="home">Home</button><button data-go="adventures">Chapters</button><button data-go="people">People</button><button data-go="travel">Travel</button><button data-go="explore">Explore</button><button data-go="memories">Memories</button><button data-go="chat">Chat</button></nav>
+    <aside id="drawer" class="drawer"><button id="closeDrawer" class="drawer-close">×</button><h3>Project Lighthouse</h3><button data-go="home">Home</button><button data-go="adventures">Chapters</button><button data-go="people">People</button><button data-go="travel">Travel Plans</button><button data-go="explore">Explore Map</button><button data-go="memories">Memories</button><button data-go="chat">Chat</button><button data-go="story">Our Story</button></aside><div id="scrim" class="scrim"></div>
+  </div>
+  <script type="module" src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
