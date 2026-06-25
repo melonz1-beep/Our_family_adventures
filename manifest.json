@@ -1,0 +1,9 @@
+{
+  "name": "Our Family Adventures",
+  "short_name": "Family Adventures",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fff7ea",
+  "theme_color": "#09283a",
+  "description": "Our Family Adventures brings the people we love closer together."
+}
