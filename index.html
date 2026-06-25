@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#09283a" />
+  <meta name="description" content="Our Family Adventures brings the people we love closer together." />
+  <title>Our Family Adventures</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app" class="app-shell">
+  <section id="splash" class="screen active splash-screen">
+    <div class="photo-bg splash-photo"></div><div class="veil splash-veil"></div><div class="lantern-glow"></div>
+    <div class="splash-copy">
+      <p class="kicker gold-readable">Project Lighthouse</p>
+      <h1>Our Family<br/>Adventures</h1>
+      <p class="tagline">Life Is Better When We're Making Memories Together.</p>
+      <button class="gold-btn" data-go="welcome">Begin Our Journey <span>→</span></button>
+    </div>
+    <div class="ocean-ribbon"><span class="ribbon-wave wave-a"></span><span class="ribbon-wave wave-b"></span><span class="ribbon-wave wave-c"></span></div>
+  </section>
+
+  <section id="welcome" class="screen welcome-screen">
+    <div class="photo-bg welcome-photo"></div><div class="veil dark"></div>
+    <div class="welcome-panel page-turn">
+      <p class="kicker gold-readable">Chapter One · Legacy Edition</p>
+      <h2>Welcome Home</h2>
+      <p>Every journey becomes a memory. Every memory becomes part of our story.</p>
+      <p class="small-welcome">Whether this is your first chapter, or you've been part of our story for years, we're glad you're here.</p>
+      <button class="gold-btn" data-go="home">Continue</button>
+    </div>
+    <div class="ocean-ribbon short"><span class="ribbon-wave wave-a"></span><span class="ribbon-wave wave-b"></span></div>
+  </section>
+
+  <main id="home" class="screen home-screen">
+    <header class="legacy-hero">
+      <div class="photo-bg home-photo"></div><div class="veil home-veil"></div><div class="lantern-glow hero-lantern"></div>
+      <div class="topbar single-header">
+        <button class="icon-btn" aria-label="Menu">☰</button>
+        <button class="icon-btn" aria-label="Family favorites">♡</button>
+      </div>
+      <div class="legacy-copy">
+        <div class="countdown-square"><span class="calendar-icon">▦</span><strong id="countdownNumber">360</strong><small id="countdownLabel">days until<br/>Nags Head</small><i></i></div>
+        <button class="gold-btn journey-btn" data-go="chapters">Begin Our Journey <span>→</span></button>
+        <div class="hero-quick-row">
+          <button data-go="chapters"><span>▣</span>Trips</button><button data-go="people"><span>♧</span>People</button><button data-go="chat"><span>☁</span>Chat</button><button data-go="memories"><span>▤</span>Photos</button><button data-go="story"><span>☷</span>Journal</button><button data-go="more"><span>•••</span>More</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="home-content">
+      <article class="welcome-home-card paper-card page-turn">
+        <p class="kicker">Welcome Home</p>
+        <h3>The next chapter is waiting to be written.</h3>
+        <p>Start here for updates, memories, photos, and conversations with the people who matter most.</p>
+      </article>
+      <div class="legacy-grid">
+        <button class="legacy-card" data-go="map"><span>◎</span><strong>Our Map</strong><small>See everywhere we've been.</small><em>→</em></button>
+        <button class="legacy-card" data-go="timeline"><span>─○─</span><strong>Timeline</strong><small>Every adventure has a place.</small><em>→</em></button>
+        <button class="legacy-card" data-go="capsules"><span>▤</span><strong>Time Capsules</strong><small>Letters to our future.</small><em>→</em></button>
+        <button class="legacy-card" data-go="favorites"><span>☆</span><strong>Favorites</strong><small>The moments we love most.</small><em>→</em></button>
+      </div>
+      <div class="tile-grid">
+        <button class="feature-tile" data-go="chapters"><span>Chapters</span><small>Where every adventure begins.</small></button>
+        <button class="feature-tile" data-go="people"><span>The People Who Make This Adventure</span><small>Every person brings something unique.</small></button>
+        <button class="feature-tile" data-go="memories"><span>Memories</span><small>Photos, comments, favorites, and stories.</small></button>
+        <button class="feature-tile" data-go="chat"><span>Family Chat</span><small>A private place for excitement and updates.</small></button>
+      </div>
+    </section>
+  </main>
+
+  <section id="chapters" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page chapter-card-full page-turn"><div class="chapter-cover-mini"></div><p class="kicker">Chapters</p><h2>Where will our next chapter take us?</h2><p>Nags Head 2027 begins the first chapter captured in Our Family Adventures.</p><button class="gold-btn">Begin a New Chapter</button></article><article class="timeline-card page-turn"><p class="kicker">Family Timeline</p><div class="timeline-line"><b>2024</b><b>2025</b><b>2027</b><b>2028</b></div><div class="timeline-item"><strong>2027</strong><span>Nags Head · Chapter One</span></div><div class="timeline-item muted"><strong>Next</strong><span>Ready for the next chapter?</span></div></article></section>
+
+  <section id="people" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Everyone Belongs</p><h2>The People Who Make This Adventure</h2><p>Every person brings something unique. Together, they make this chapter unforgettable.</p></article><div class="people-list" id="peopleList"></div><form class="quick-form" id="peopleForm"><input id="personName" placeholder="Add a name" autocomplete="off" /><button type="submit">Add</button></form></section>
+
+  <section id="memories" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Scrapbook Studio · Preview</p><h2>Every picture captures a moment. Every chapter tells the story.</h2><p>This first scrapbook preview starts the memory space. Photo uploads, comments, favorites, and scrapbook pages will grow here.</p></article><div class="scrapbook-spread page-turn"><div class="paper-photo"></div><div class="reaction-row"><span>❤️ Love</span><span>😂 Laugh</span><span>🥹 Happy Tears</span><span>⭐ Favorite</span><span>🏖 Must Do Again</span></div><div class="paper-note">The chapter may be complete... but the story continues.</div></div></section>
+
+  <section id="chat" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Family Chat · Preview</p><h2>Your private hub to start the excitement and stay connected.</h2><p>Firebase chat will connect here in a future build. For now, this preview shows the tone.</p></article><div class="chat-bubble">Who's ready for Nags Head?</div><div class="chat-bubble reply">Are you ready for the next chapter?</div></section>
+
+  <section id="story" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page intro-story page-turn"><p class="kicker">Our Story</p><h2>Every family has a story that began long before this app.</h2><p>Our Family Adventures wasn't created to replace those memories. It was created to help preserve the chapters we're writing today while honoring every adventure that came before.</p><p>Whether you're family by birth, by marriage, or simply one of the people we love, you are part of our story.</p></article><article class="story-page vision-card page-turn"><p class="kicker gold-readable">Our Vision</p><h2>Our Family Adventures brings the people we love closer together.</h2><p>To celebrate life. To preserve memories. To pass down our story.</p></article><article class="story-page circle-card page-turn"><p class="kicker">The Circle</p><h2>A circle has no beginning and no end.</h2><p>No one stands at the front. No one stands behind. Every person is equally important. Every voice matters. Every smile is seen. Every memory belongs.</p><p><strong>Because circles don't have edges. They simply make room.</strong></p></article></section>
+
+  <section id="map" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Our Map</p><h2>Every adventure leaves a light behind.</h2><p>Each chapter will place a lighthouse pin on your family's map.</p><div class="map-preview"><span class="pin one">⚓</span><span class="pin two">✦</span><span class="pin three">⌂</span></div></article></section>
+  <section id="timeline" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Family Timeline</p><h2>The story grows one chapter at a time.</h2><div class="legacy-timeline"><div><b>2027</b><span>Nags Head · Chapter One</span></div><div><b>Next</b><span>Ready for the next adventure?</span></div><div><b>Someday</b><span>Chapter Twenty, Chapter Fifty, and beyond.</span></div></div></article></section>
+  <section id="capsules" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Time Capsules</p><h2>Letters to the future.</h2><p>Write a memory today and choose when it opens: next year, in five years, on graduation day, or someday special.</p><div class="capsule-card">Open in 2037 · A note from Chapter One</div></article></section>
+  <section id="favorites" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">Favorites</p><h2>The moments everyone wants to remember.</h2><p>Favorite sunsets, funniest quotes, best meals, must-do-again adventures, and happy tears will gather here.</p><div class="favorite-row"><span>⭐ Best Sunset</span><span>😂 Funniest Moment</span><span>🏖 Must Do Again</span></div></article></section>
+  <section id="more" class="screen inner-screen"><button class="back-btn" data-go="home">← Home</button><article class="story-page page-turn"><p class="kicker">More</p><h2>More ways to keep the story growing.</h2><p>Planning, packing, meals, reminders, traditions, and admin tools will grow here in future builds.</p></article></section>
+
+  <nav class="bottom-nav"><button data-go="home"><span>⌂</span>Home</button><button data-go="chapters"><span>▱</span>Chapters</button><button data-go="people"><span>♧</span>People</button><button data-go="memories"><span>▣</span>Memories</button><button data-go="chat"><span>☏</span>Chat</button><button data-go="story"><span>◇</span>Our Story</button></nav>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
