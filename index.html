@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Our Family Adventures</title>
+  <meta name="theme-color" content="#d7eef3" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="splash" class="splash active">
+    <div class="splashOverlay"></div>
+    <div class="splashContent">
+      <h1>Our Family Adventures</h1>
+      <p>Life Is Better When We're Making Memories Together.</p>
+      <button id="beginBtn" class="primary">Begin Our Journey</button>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <header class="hero">
+      <div class="heroShade"></div>
+      <div class="topbar">
+        <button id="menuBtn" class="roundBtn" aria-label="Open menu">☰</button>
+        <button id="installBtn" class="roundBtn" aria-label="Install app" title="Install App">⬇</button>
+        <button id="notifyBtn" class="roundBtn" aria-label="Notifications">🔔</button>
+      </div>
+      <div class="heroText">
+        <h2>Welcome Home</h2>
+        <p id="nextAdventureText">Your next adventure is waiting.</p>
+        <div class="countdown" id="countdown">Add an adventure to begin the countdown.</div>
+      </div>
+    </header>
+
+    <main>
+      <section id="home" class="page active">
+        <div class="activity card">
+          <h3>Today in Our Story</h3>
+          <p id="activityLine">Start by adding people, creating an adventure, or saving a memory.</p>
+        </div>
+        <div class="storybookGrid">
+          <button data-go="adventures" class="storybookCard">✈️<span>Adventures</span><small>Create trips, RSVP, vote, and plan together.</small></button>
+          <button data-go="travel" class="storybookCard">🍽️<span>Travel Plans</span><small>Meals, Airbnb links, flights, packing, weather.</small></button>
+          <button data-go="people" class="storybookCard">👥<span>People</span><small>Profiles, photos, birthdays, contact options.</small></button>
+          <button data-go="memories" class="storybookCard">📸<span>Memories</span><small>Upload, tag, print, share, and add to scrapbook.</small></button>
+          <button data-go="scrapbook" class="storybookCard">📖<span>Scrapbook</span><small>Layouts, pages, printable family storybooks.</small></button>
+          <button data-go="explore" class="storybookCard">🧭<span>Explore</span><small>Map pins, favorite places, and directions.</small></button>
+        </div>
+      </section>
+
+      <section id="adventures" class="page">
+        <div class="pageHead"><h2>Adventures</h2><p>Plan together, invite only who should see it, and keep every chapter organized.</p></div>
+        <div class="card formCard">
+          <h3>New Adventure</h3>
+          <label>Adventure name<input id="tripName" placeholder="Nags Head 2027" /></label>
+          <label>Destination<input id="tripDestination" placeholder="Nags Head, NC" /></label>
+          <div class="twoCols"><label>Arrival<input id="tripStart" type="date" /></label><label>Departure<input id="tripEnd" type="date" /></label></div>
+          <label>Visibility<select id="tripVisibility"><option value="family">Whole family</option><option value="private">Private / invite only</option></select></label>
+          <label>Invitees<input id="tripInvitees" placeholder="Melissa, Bob, Emily" /></label>
+          <button id="saveTrip" class="primary">Save Adventure</button>
+        </div>
+        <div id="tripList" class="list"></div>
+      </section>
+
+      <section id="travel" class="page">
+        <div class="pageHead"><h2>Travel Plans</h2><p>Everything for the trip in one cozy place.</p></div>
+        <div class="card formCard">
+          <h3>Airbnb / Hotel / Travel Link</h3>
+          <label>Title<input id="linkTitle" placeholder="Oceanfront cottage" /></label>
+          <label>Link<input id="linkUrl" placeholder="https://www.airbnb.com/..." /></label>
+          <button id="saveLink" class="primary">Save Link</button>
+        </div>
+        <div class="card formCard">
+          <h3>Meals / Menu</h3>
+          <label>Assign to adventure<select id="mealTrip"></select></label>
+          <label>Meal / day<input id="mealTitle" placeholder="Saturday dinner" /></label>
+          <label>Item<input id="mealItem" placeholder="Main dish, fruit, appetizer, paper plates" /></label>
+          <label>Who is bringing it?<input id="mealPerson" placeholder="Melissa" /></label>
+          <button id="saveMeal" class="primary">Add Meal Item</button>
+        </div>
+        <div id="travelList" class="list"></div>
+      </section>
+
+      <section id="people" class="page">
+        <div class="pageHead"><h2>People</h2><p>No labels. Just the people who make this adventure.</p></div>
+        <div class="card formCard">
+          <h3>Add Person</h3>
+          <label>Name<input id="personName" placeholder="Melissa" /></label>
+          <label>Birthday<input id="personBirthday" type="date" /></label>
+          <label>Email<input id="personEmail" type="email" placeholder="name@email.com" /></label>
+          <label>Phone<input id="personPhone" type="tel" placeholder="555-555-5555" /></label>
+          <label>Profile photo<input id="personPhoto" type="file" accept="image/*" /></label>
+          <button id="savePerson" class="primary">Save Person</button>
+        </div>
+        <div class="contactActions card"><h3>Group Contact</h3><p>Select saved people to create a group text or email.</p><div id="contactChecks"></div><button id="groupEmail" class="secondary">Email selected</button><button id="groupText" class="secondary">Text selected</button></div>
+        <div id="peopleList" class="peopleGrid"></div>
+      </section>
+
+      <section id="memories" class="page">
+        <div class="pageHead"><h2>Memories</h2><p>Keep originals here. Add all or selected photos to scrapbook when you're ready.</p></div>
+        <div class="card formCard">
+          <h3>Add Memories</h3>
+          <label>Photos/videos<input id="memoryFiles" type="file" accept="image/*,video/*" multiple /></label>
+          <label>Caption<input id="memoryCaption" placeholder="Sunset on the beach" /></label>
+          <label>Uploaded by<input id="memoryUploader" placeholder="Melissa" /></label>
+          <button id="saveMemories" class="primary">Save Memories</button>
+        </div>
+        <div class="card"><h3>Scrapbook Options</h3><button id="addAllToBook" class="secondary">Add all memories to scrapbook</button><button id="printMemories" class="secondary">Print memories</button></div>
+        <div id="memoryGrid" class="memoryGrid"></div>
+      </section>
+
+      <section id="scrapbook" class="page">
+        <div class="pageHead"><h2>Scrapbook Studio</h2><p>Create editable, printable, shareable pages from your memories.</p></div>
+        <div class="card formCard">
+          <h3>Create Page</h3>
+          <label>Page title<input id="pageTitle" placeholder="First Sunset Together" /></label>
+          <label>Journal note<textarea id="pageNote" placeholder="Write the story behind this page..."></textarea></label>
+          <button id="savePage" class="primary">Save Scrapbook Page</button>
+          <button id="printBook" class="secondary">Print / save as PDF</button>
+        </div>
+        <div id="scrapbookPages" class="scrapbookPages"></div>
+      </section>
+
+      <section id="chat" class="page">
+        <div class="pageHead"><h2>Family Chat</h2><p>Use @name to mention someone.</p></div>
+        <div id="chatLog" class="chatLog"></div>
+        <div class="chatBox"><input id="chatInput" placeholder="Write a message..." /><button id="sendChat" class="primary">Send</button></div>
+      </section>
+
+      <section id="explore" class="page">
+        <div class="pageHead"><h2>Explore</h2><p>Save places, open directions, and keep family favorites.</p></div>
+        <div class="card formCard">
+          <h3>Add Pin</h3>
+          <label>Name<input id="pinName" placeholder="Best ice cream" /></label>
+          <label>Address<input id="pinAddress" placeholder="Nags Head, NC" /></label>
+          <button id="savePin" class="primary">Save Pin</button>
+        </div>
+        <div id="pinList" class="list"></div>
+      </section>
+
+      <section id="story" class="page">
+        <div class="pageHead"><h2>Our Story</h2><p>Our Family Adventures brings the people we love closer together.</p></div>
+        <div class="card"><h3>The Circle</h3><p>A circle has no beginning and no end. No one stands at the front. No one stands behind. Every person is equally important. Every voice matters. Every smile is seen. Every memory belongs.</p></div>
+        <div class="card"><h3>Security & Privacy</h3><p>Family login, invite-only private trips, Firebase security rules, Storage rules, App Check, and admin controls are part of the production safety layer.</p></div>
+      </section>
+    </main>
+
+    <nav class="dock" aria-label="Main navigation">
+      <button data-go="home" class="active">🏠<span>Home</span></button>
+      <button data-go="adventures">✈️<span>Trips</span></button>
+      <button data-go="memories">📸<span>Memories</span></button>
+      <button data-go="scrapbook">📖<span>Book</span></button>
+      <button data-go="chat">💬<span>Chat</span></button>
+      <button data-go="travel">🍽️<span>Plans</span></button>
+    </nav>
+
+    <aside id="drawer" class="drawer">
+      <button id="closeDrawer" class="roundBtn">×</button>
+      <h3>Our Family Adventures</h3>
+      <button data-go="home">Home</button><button data-go="adventures">Adventures</button><button data-go="travel">Travel Plans</button><button data-go="people">People</button><button data-go="memories">Memories</button><button data-go="scrapbook">Scrapbook</button><button data-go="chat">Chat</button><button data-go="explore">Explore</button><button data-go="story">Our Story</button>
+    </aside>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
