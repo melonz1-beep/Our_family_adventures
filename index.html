@@ -13,7 +13,7 @@
     <section id="splash" class="splash screen active">
       <div class="photo-layer"></div><div class="veil splash-veil"></div><div class="beam"></div><div class="waves"><span></span><span></span><span></span></div>
       <button class="icon-btn splash-menu menu-open" aria-label="Open menu">☰</button>
-      <button class="icon-btn splash-bell" aria-label="Notifications">♡</button>
+      <button class="icon-btn splash-bell notify-open" aria-label="Notifications" data-go="notifications">🔔</button>
       <div class="splash-content minimal">
         <button class="gold-btn big" data-go="home">Begin Our Journey ⚓</button>
       </div>
@@ -23,7 +23,7 @@
       <header class="hero">
         <div class="photo-layer home-photo"></div><div class="veil home-veil"></div><div class="waves short"><span></span><span></span></div>
         <button class="icon-btn menu-open" aria-label="Open menu">☰</button>
-        <button class="icon-btn heart-btn" aria-label="Open favorites">♡</button>
+        <button class="icon-btn heart-btn notify-open" aria-label="Notifications" data-go="notifications">🔔</button>
         <div class="hero-copy compact">
           <p class="kicker">Welcome Home</p>
           <h2>Nags Head 2027</h2>
@@ -55,7 +55,7 @@
           <label>Destination<input id="tripLocation" placeholder="Nags Head, NC"></label>
           <label>Arrival date<input id="tripStart" type="date"></label>
           <label>Departure date<input id="tripEnd" type="date"></label>
-          <label>Cover photo URL<input id="tripCover" placeholder="Optional image link"></label>
+          <label>Cover photo<input id="tripCover" type="file" accept="image/*"></label>
           <label>Trip privacy<select id="tripVisibility"><option>Everyone</option><option>Invite only</option><option>Private planning</option></select></label>
         </div>
         <div class="panel-sub"><h4>Invite family</h4><div id="inviteChecks" class="chips"></div></div>
@@ -67,7 +67,7 @@
     </section>
 
     <section id="people" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>People</h2></div>
-      <div class="panel"><h3>Add a Person</h3><div class="grid2"><input id="personName" placeholder="Name"><input id="personPhoto" placeholder="Profile photo URL"><input id="personBirthday" type="date"><input id="personAirport" placeholder="Home airport"><input id="personEmail" placeholder="Email"><input id="personPhone" placeholder="Phone optional"></div><input id="personFav" placeholder="Favorite activities or destinations"><button id="addPerson" class="gold-btn">Add Person</button></div><div id="peopleList" class="cards"></div>
+      <div class="panel"><h3>Add a Person</h3><div class="grid2"><input id="personName" placeholder="Name"><input id="personPhoto" type="file" accept="image/*"><input id="personBirthday" type="date"><input id="personAirport" placeholder="Home airport"><input id="personEmail" placeholder="Email"><input id="personPhone" placeholder="Phone optional"></div><input id="personFav" placeholder="Favorite activities or destinations"><p class="small">Profile photos can be selected from your phone Photos/Gallery.</p><button id="addPerson" class="gold-btn">Add Person</button></div><div id="peopleList" class="cards"></div>
     </section>
 
     <section id="travel" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Travel Plans</h2></div>
@@ -76,7 +76,7 @@
       <div class="tab-pane" id="tab-flights"><div class="panel"><h3>Flights & Transportation</h3><div class="grid2"><input id="flightInfo" placeholder="Flight, airline, confirmation"><input id="carInfo" placeholder="Rental car / driving notes"></div><button id="saveTravel" class="navy-btn">Save Travel Notes</button><div id="travelNotes" class="note"></div></div></div>
       <div class="tab-pane" id="tab-packing"><div class="panel"><h3>Packing List</h3><input id="packItem" placeholder="Add item"><button id="addPack" class="gold-btn">Add Item</button><div id="packList" class="list"></div></div></div>
       <div class="tab-pane" id="tab-food"><div class="panel"><h3>Restaurants & Things To Do</h3><input id="foodIdea" placeholder="Restaurant or activity"><button id="addFood" class="gold-btn">Add Idea</button><div id="foodList" class="list"></div></div></div>
-      <div class="tab-pane" id="tab-weather"><div class="panel"><h3>Weather</h3><p>Open forecasts, sunrise/sunset, tides, and beach weather for your adventure.</p><button class="navy-btn" onclick="window.open('https://www.google.com/search?q=Nags+Head+weather+tides+sunrise+sunset','_blank')">Open Weather</button></div></div>
+      <div class="tab-pane" id="tab-weather"><div class="panel"><h3>Weather</h3><p>Open The Weather Channel for forecasts, alerts, sunrise/sunset, and beach weather for your adventure.</p><button class="navy-btn" onclick="window.open('https://weather.com/search/enhancedlocalsearch?where=Nags%20Head%2C%20NC','_blank')">Open The Weather Channel</button></div></div>
     </section>
 
     <section id="explore" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Explore Map</h2></div>
@@ -90,11 +90,27 @@
     </section>
 
     <section id="memories" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Memories</h2></div>
-      <div class="panel"><h3>Add Photos or Videos</h3><input id="memoryFile" type="file" accept="image/*,video/*" multiple><input id="memoryTitle" placeholder="Memory title"><input id="memoryTags" placeholder="Tag people: Melissa, Bob"><button id="addMemory" class="gold-btn">Add Memory</button></div><div id="memoryList" class="cards"></div>
+      <div class="panel"><h3>Add Photos or Videos</h3><input id="memoryFile" type="file" accept="image/*,video/*" multiple><p class="small">Choose from your phone Photos/Gallery or computer files.</p><input id="memoryTitle" placeholder="Memory title"><input id="memoryTags" placeholder="Tag people: Melissa, Bob"><button id="addMemory" class="gold-btn">Add Memory</button></div><div id="memoryList" class="cards"></div>
     </section>
 
     <section id="chat" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Family Chat</h2></div>
       <div class="panel"><div id="chatList" class="chat-list"></div><div class="chat-row"><input id="chatInput" placeholder="Message family... use @Name"><button id="sendChat" class="gold-btn">Send</button></div><p class="small">Push notifications will require Firebase Auth + Messaging in the live production build. @mentions work by family profile name.</p></div>
+    </section>
+
+
+    <section id="notifications" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Notifications</h2></div>
+      <div class="panel"><h3>Family Updates</h3><p>Get updates for messages, new adventures, photo uploads, voting, RSVP changes, and travel changes.</p>
+        <div class="notify-actions"><button id="enableNotifications" class="gold-btn">Turn On Device Notifications</button><button id="addTestNotification" class="navy-btn">Send Test Update</button></div>
+        <p class="small">This build adds an in-app notification center and browser notification preview. True push notifications when the app is closed will be connected in the Firebase Messaging build.</p>
+      </div>
+      <div class="panel"><h3>Notification Preferences</h3>
+        <label class="check"><input type="checkbox" class="pref" value="messages" checked> Messages and @mentions</label>
+        <label class="check"><input type="checkbox" class="pref" value="adventures" checked> New adventures and trip changes</label>
+        <label class="check"><input type="checkbox" class="pref" value="photos" checked> Photos, videos, and tags</label>
+        <label class="check"><input type="checkbox" class="pref" value="voting" checked> Voting, Airbnb choices, date/location proposals</label>
+        <label class="check"><input type="checkbox" class="pref" value="travel" checked> Travel plans, weather, packing reminders</label>
+      </div>
+      <div class="panel"><h3>Recent Updates</h3><div id="notificationList" class="list"></div></div>
     </section>
 
     <section id="favorites" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Family Favorites</h2></div><div class="panel"><p>Favorite memories and places collect here.</p><div id="favList"></div></div></section>
@@ -102,7 +118,7 @@
     <section id="story" class="screen page"><div class="page-head"><button class="back" data-go="home">← Home</button><h2>Our Story</h2></div><div class="panel story"><h3>A place where memories are made, adventures are planned, and family stories live on.</h3><p>Every family has a story that began long before this app. These pages help preserve the chapters we're writing today while honoring every adventure that came before.</p><h3>The Circle</h3><p>A circle has no beginning and no end. No one stands at the front. No one stands behind. Every person is equally important. Every voice matters. Every smile is seen. Every memory belongs.</p></div></section>
 
     <nav class="bottom-nav" aria-label="Main navigation"><button data-go="home">Home</button><button data-go="adventures">Chapters</button><button data-go="people">People</button><button data-go="travel">Travel</button><button data-go="explore">Explore</button><button data-go="memories">Memories</button><button data-go="chat">Chat</button></nav>
-    <aside id="drawer" class="drawer"><button id="closeDrawer" class="drawer-close">×</button><h3>Our Family Adventures</h3><button data-go="home">Home</button><button data-go="adventures">Chapters</button><button data-go="people">People</button><button data-go="travel">Travel Plans</button><button data-go="explore">Explore Map</button><button data-go="memories">Memories</button><button data-go="chat">Chat</button><button data-go="journal">Adventure Journal</button><button data-go="timeline">Family Timeline</button><button data-go="story">Our Story</button></aside><div id="scrim" class="scrim"></div>
+    <aside id="drawer" class="drawer"><button id="closeDrawer" class="drawer-close">×</button><h3>Our Family Adventures</h3><button data-go="home">Home</button><button data-go="adventures">Chapters</button><button data-go="people">People</button><button data-go="travel">Travel Plans</button><button data-go="explore">Explore Map</button><button data-go="memories">Memories</button><button data-go="chat">Chat</button><button data-go="notifications">Notifications</button><button data-go="journal">Adventure Journal</button><button data-go="timeline">Family Timeline</button><button data-go="story">Our Story</button></aside><div id="scrim" class="scrim"></div>
   </div>
   <script type="module" src="firebase-config.js"></script>
   <script src="app.js"></script>
