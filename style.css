@@ -1,0 +1,1 @@
+{"name":"Our Family Adventures","short_name":"Family Adventures","start_url":"./","display":"standalone","background_color":"#fff7ea","theme_color":"#092231","icons":[{"src":"assets/lighthouse-home.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
