@@ -1,12 +1,12 @@
-// Our Family Adventures Version 5.0 Firebase Activation
-// 1) Create a Firebase project.
-// 2) Enable Authentication > Email/Password.
-// 3) Enable Firestore Database.
-// 4) Enable Storage.
-// 5) Paste your Web App config below.
-// 6) Keep window.OFA_FIREBASE_ENABLED = true.
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-window.firebaseConfig = {
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
   apiKey: "AIzaSyCr4mRHzubFblqpdiaBB4lYWwF9TPc4C2g",
   authDomain: "our-family-adventures.firebaseapp.com",
   databaseURL: "https://our-family-adventures-default-rtdb.firebaseio.com",
@@ -17,4 +17,6 @@ window.firebaseConfig = {
   measurementId: "G-DDRV34JC2Z"
 };
 
-window.OFA_FIREBASE_ENABLED = true;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
