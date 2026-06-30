@@ -1,0 +1,1 @@
+{"indexes":[{"collectionGroup":"adventures","queryScope":"COLLECTION","fields":[{"fieldPath":"start","order":"ASCENDING"},{"fieldPath":"visibility","order":"ASCENDING"}]},{"collectionGroup":"memories","queryScope":"COLLECTION","fields":[{"fieldPath":"trip","order":"ASCENDING"},{"fieldPath":"date","order":"DESCENDING"}]}],"fieldOverrides":[]}
