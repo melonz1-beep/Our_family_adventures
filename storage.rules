@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function approved() {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.approved == true;
+    }
+    match /family/{userId}/{allPaths=**} {
+      allow read: if approved();
+      allow write: if approved() && request.auth.uid == userId
+        && request.resource.size < 100 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*|video/.*|application/pdf');
+      allow delete: if approved() && request.auth.uid == userId;
+    }
+  }
+}

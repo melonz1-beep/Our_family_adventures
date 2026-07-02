@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function verified() { return signedIn(); }
+    function userDoc(uid) { return get(/databases/$(database)/documents/users/$(uid)); }
+    function approved() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc(request.auth.uid).data.approved == true;
+    }
+    function admin() {
+      return approved() && userDoc(request.auth.uid).data.role in ['Admin','admin','Owner','owner'];
+    }
+    function familyMember(familyId) {
+      return approved()
+        && exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.approved == true;
+    }
+
+    // Invite codes can be checked before sign-up. Keep only email/code/status here.
+    match /familyInvites/{code} {
+      allow get: if resource.data.status == 'pending';
+      allow list: if false;
+      allow create, update, delete: if admin();
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow read, update: if signedIn() && (request.auth.uid == userId || admin());
+      allow delete: if admin();
+    }
+
+    match /families/{familyId}/members/{userId} {
+      allow read: if familyMember(familyId) || admin();
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow update, delete: if admin();
+    }
+
+    match /families/{familyId}/private/{docId} {
+      allow read, write: if familyMember(familyId) || admin();
+    }
+
+    match /families/{familyId}/{document=**} {
+      allow read, write: if familyMember(familyId) || admin();
+    }
+  }
+}
