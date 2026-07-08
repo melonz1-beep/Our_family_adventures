@@ -1,0 +1,20 @@
+/* Our Family Adventures 7.1.1 mobile correction styles */
+html,body{scroll-padding-bottom:150px;}
+main,.page{padding-bottom:170px!important;}
+.dock{overflow-x:auto;gap:10px;scrollbar-width:none;}
+.dock button{min-width:82px;flex:0 0 auto;}
+.scrapCanvas,.draftCanvas664,#draftCanvas,#draftCanvas652,#scrapCanvas71{min-height:620px!important;margin-bottom:110px;}
+.scrapCanvas711{position:relative;min-height:720px;border-radius:28px;background:linear-gradient(145deg,#e1fbf7,#fffaf0);overflow:hidden;padding:24px;box-shadow:inset 0 0 0 1px rgba(120,90,65,.15);margin-bottom:24px;touch-action:none;}
+.scrapCanvas711.bg-sunset{background:linear-gradient(145deg,#ffd1bd,#fff3c7,#d5f5ff)}.scrapCanvas711.bg-sand{background:linear-gradient(145deg,#f9edcf,#fffaf0)}.scrapCanvas711.bg-roseGold{background:linear-gradient(145deg,#f8d8d1,#fff8ee,#ddf4ee)}
+.cropPhoto711{position:absolute;background:#fff;border-radius:20px;box-shadow:0 10px 28px rgba(0,0,0,.16);overflow:hidden;touch-action:none;border:8px solid #fff;}
+.cropPhoto711 img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:center;}
+.cropPhoto711.frame-polaroid{border-bottom-width:34px;border-radius:6px}.cropPhoto711.frame-heart{clip-path:path('M 90 25 C 65 -5 10 15 10 65 C 10 112 58 135 90 170 C 122 135 170 112 170 65 C 170 15 115 -5 90 25 Z');border:0}.cropPhoto711.frame-circle{border-radius:999px}.cropPhoto711.frame-star{clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);border:0}.cropPhoto711.frame-none{border:0;border-radius:12px}
+.cropBtns{position:absolute;left:4px;right:4px;bottom:4px;display:flex;gap:3px;flex-wrap:wrap;justify-content:center}.cropBtns button{min-width:26px;padding:2px 5px;border-radius:10px;background:rgba(255,255,255,.86);border:1px solid rgba(0,0,0,.1);font-weight:bold;color:#123a4a;}
+.resize711{position:absolute;right:2px;bottom:2px;background:#fff;border-radius:50%;font-size:16px;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.sticker711,.text711{position:absolute;z-index:20;touch-action:none;cursor:grab;text-shadow:0 2px 8px rgba(255,255,255,.8)}.text711{background:rgba(255,255,255,.74);border-radius:14px;padding:8px 12px;color:#123a4a;font-weight:700;}
+.framePalette711,.stickerPalette711,.scrapTools711{display:flex;gap:10px;overflow-x:auto;padding:8px 0 14px}.framePalette711 button,.stickerPalette711 button{min-width:58px;height:58px;border-radius:999px;border:1px solid #ead2cd;background:linear-gradient(145deg,#eafdfa,#fff7ee);font-weight:800;font-size:20px;color:#123a4a;flex:0 0 auto}.framePalette711 button{font-size:16px;min-width:62px}
+.mediaAdminWrap{position:relative}.mediaDelete711{position:absolute;right:4px;top:4px;width:32px;height:32px;border-radius:50%;border:0;background:#bd3b40;color:white;font-weight:900;}
+.tripSearch711 .quickSearchGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tripSearch711 a{text-align:center;text-decoration:none}.weatherLiveCard iframe{width:100%;min-height:360px;border:0;border-radius:22px;background:white}.linkRow{display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,.08);padding:12px 0}.voteRow{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.08)}
+.mealDateCards711 .mealSlot664{padding:12px 0;border-top:1px dashed rgba(0,0,0,.12)}
+body:not(.isAdmin711) .adminOnlyCard,body:not(.isAdmin711) [data-go="admin71"]{display:none!important;}
+@media(max-width:640px){.scrapCanvas711{min-height:620px}.cropPhoto711{max-width:84vw}.voteRow{grid-template-columns:1fr;}.tripSearch711 .quickSearchGrid{grid-template-columns:1fr 1fr}.dock button{min-width:82px}.framePalette button,.framePalette711 button{font-size:15px;min-width:56px}.stickerPalette button,.stickerPalette711 button{min-width:56px}}
