@@ -1,0 +1,1 @@
+{"rules":{"families":{"$familyId":{".read":"auth != null",".write":"auth != null"}}}}
