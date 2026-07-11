@@ -1,0 +1,74 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "families": {
+      "$familyId": {
+        "publicData": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "familyTrips": {
+          ".read": "auth != null",
+          "$tripId": {
+            ".write": "auth != null && (newData.exists() || auth.token.email == 'mlehr1211@gmail.com' || data.child('trip/ownerUid').val() == auth.uid)"
+          }
+        },
+        "privateTrips": {
+          "$tripId": {
+            ".read": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || data.child('trip/ownerUid').val() == auth.uid || root.child('families').child($familyId).child('tripMembers').child($tripId).child(auth.uid).val() == true)",
+            ".write": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || data.child('trip/ownerUid').val() == auth.uid || newData.child('trip/ownerUid').val() == auth.uid || root.child('families').child($familyId).child('tripMembers').child($tripId).child(auth.uid).val() == true)"
+          }
+        },
+        "tripAccess": {
+          "$uid": {
+            ".read": "auth != null && (auth.uid == $uid || auth.token.email == 'mlehr1211@gmail.com')",
+            "$tripId": {
+              ".write": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || root.child('families').child($familyId).child('privateTrips').child($tripId).child('trip/ownerUid').val() == auth.uid)"
+            }
+          },
+          ".read": "auth != null && auth.token.email == 'mlehr1211@gmail.com'"
+        },
+        "tripMembers": {
+          "$tripId": {
+            ".read": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || root.child('families').child($familyId).child('privateTrips').child($tripId).child('trip/ownerUid').val() == auth.uid)",
+            "$uid": {
+              ".write": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || root.child('families').child($familyId).child('privateTrips').child($tripId).child('trip/ownerUid').val() == auth.uid)"
+            },
+            ".write": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || root.child('families').child($familyId).child('privateTrips').child($tripId).child('trip/ownerUid').val() == auth.uid)"
+          }
+        },
+        "userNotifications": {
+          "$uid": {
+            ".read": "auth != null && (auth.uid == $uid || auth.token.email == 'mlehr1211@gmail.com')",
+            ".write": "auth != null && (auth.uid == $uid || auth.token.email == 'mlehr1211@gmail.com')"
+          }
+        },
+        "migration": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.token.email == 'mlehr1211@gmail.com'"
+        },
+        "appData": {
+          ".read": "auth != null && auth.token.email == 'mlehr1211@gmail.com'",
+          ".write": false
+        },
+        "pendingInvites": {
+          "$inviteId": {
+            ".read": "data.exists()",
+            ".write": "auth != null && (auth.token.email == 'mlehr1211@gmail.com' || (data.child('email').val() == auth.token.email) || (newData.child('email').val() == auth.token.email))"
+          }
+        },
+        "setup": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.token.email == 'mlehr1211@gmail.com'"
+        },
+        "pushTokens": {
+          "$uid": {
+            ".read": "auth != null && (auth.uid == $uid || auth.token.email == 'mlehr1211@gmail.com')",
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        }
+      }
+    }
+  }
+}
