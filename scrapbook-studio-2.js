@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const V='10.3.1';
+const V='10.3.2';
 const KEY='ofa-scrapbook-studio-2';
 const RECOVERY_KEY=`${KEY}-recovery`;
 const HISTORY_LIMIT=35;
@@ -187,7 +187,17 @@ function startGesture(e){
 function moveGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;gesture.lastX=e.clientX;gesture.lastY=e.clientY;if(moveFrame)return;moveFrame=requestAnimationFrame(()=>{moveFrame=0;if(!gesture)return;const s=scale();gesture.o.x=gesture.ox+(gesture.lastX-gesture.x)/s;gesture.o.y=gesture.oy+(gesture.lastY-gesture.y)/s;gesture.el.style.transform=`translate3d(${gesture.o.x}px,${gesture.o.y}px,0) rotate(${gesture.o.r}deg) scale(${gesture.o.flipX||1},${gesture.o.flipY||1})`})}
 function endGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;if(moveFrame){cancelAnimationFrame(moveFrame);moveFrame=0}const el=gesture.el;gesture=null;el.onpointermove=null;el.onpointerup=null;el.onpointercancel=null;scheduleSave()}
 function scale(){return Number(document.querySelector('#ss2-stage')?.dataset.scale||1)}
-function fit(){const wrap=document.querySelector('.ss2-stage-wrap'),st=document.querySelector('#ss2-stage');if(!wrap||!st)return;const s=Math.max(.2,Math.min(1,(wrap.clientWidth-24)/900,(wrap.clientHeight-30)/675));st.style.transform=`scale(${s})`;st.dataset.scale=s;st.style.marginBottom=`${675*(s-1)}px`}
+function fit(){
+ const wrap=document.querySelector('.ss2-stage-wrap'),st=document.querySelector('#ss2-stage');if(!wrap||!st)return;
+ const rect=wrap.getBoundingClientRect(),css=getComputedStyle(wrap);
+ const px=v=>Number.parseFloat(v)||0;
+ const viewportWidth=Math.min(rect.width,document.documentElement.clientWidth||innerWidth);
+ const viewportHeight=Math.min(rect.height,window.visualViewport?.height||innerHeight);
+ const availableWidth=Math.max(1,viewportWidth-px(css.paddingLeft)-px(css.paddingRight));
+ const availableHeight=Math.max(1,viewportHeight-px(css.paddingTop)-px(css.paddingBottom));
+ const s=Math.max(.1,Math.min(1,availableWidth/900,availableHeight/675));
+ st.style.transform=`scale(${s})`;st.dataset.scale=String(s);st.style.marginBottom=`${675*(s-1)}px`;
+}
 function bind(){
  renderController?.abort();renderController=new AbortController();const {signal}=renderController;
  const on=(target,type,fn,options={})=>target?.addEventListener(type,fn,{...options,signal});
@@ -211,12 +221,14 @@ async function handleFiles(e){
 }
 async function exportPage(){
  selected=null;renderStage();setStatus('Exporting…');
- try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.1.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.1.pdf')}}finally{setStatus('Saved')}
+ try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.2.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.2.pdf')}}finally{setStatus('Saved')}
 }
 function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook'}
 function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=load();history=[];future=[];selected=null;render()}
 async function close(){if(closing)return;closing=true;await persist({force:true});renderController?.abort();renderController=null;document.querySelector('.ss2')?.remove();document.body.classList.remove('ss2-open');if(location.hash.startsWith('#scrapbook'))location.hash='#home';closing=false}
 window.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
+window.visualViewport?.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
+window.addEventListener('orientationchange',()=>requestAnimationFrame(fit),{passive:true});
 window.addEventListener('hashchange',()=>{if(shouldOpen())open();else if(document.querySelector('.ss2'))close()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&state)persist({force:true})});
 window.addEventListener('pagehide',()=>{if(state)persist({force:true})});
