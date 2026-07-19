@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const V='10.3.2';
+const V='10.3.3';
 const KEY='ofa-scrapbook-studio-2';
 const RECOVERY_KEY=`${KEY}-recovery`;
 const HISTORY_LIMIT=35;
@@ -28,7 +28,7 @@ const STICKERS={
 'Food & Drinks':['🍔','🍕','🍰','☕','🍷','🍺','🍹','🥂'],
 'Flowers':['🌻','🌹','🌸','🌼','🌺','🌷','🪻','🍀']
 };
-const SHAPES=['heart','star','flower','oval','hexagon','puzzle','polaroid','shell','beach','vintage'];
+const SHAPES=['none','heart','star','flower','oval','hexagon','puzzle','polaroid','shell','beach','vintage'];
 let state=null,history=[],future=[],selected=null,saveTimer=null,gesture=null,pendingShape=null;
 let renderController=null,lastLocalHash='',lastFirebaseHash='',syncPromise=Promise.resolve(),moveFrame=0,dirty=false,closing=false;
 const imageAssets=new Map();
@@ -125,16 +125,16 @@ async function compressImage(file){
   return canvas.toDataURL('image/jpeg',.82);
  }catch{return data}
 }
-async function addPhoto(file,shape='polaroid'){
+async function addPhoto(file,shape='none'){
  setStatus('Preparing photo…');
  const src=await compressImage(file);
- add('photo',{src,shape,border:'#fff',borderWidth:8,shadow:12,glow:0,fit:'cover',flipX:1,flipY:1,photoScale:1,photoX:0,photoY:0});
+ add('photo',{src,name:file.name||'',shape,border:'#fff',borderWidth:0,shadow:0,glow:0,fit:'cover',flipX:1,flipY:1,photoScale:1,photoX:0,photoY:0});
 }
 function addText(){add('text',{text:'Double-tap to edit',fontSize:34,color:'#263238',fontWeight:700,w:330,h:90})}
 function addSticker(text){add('sticker',{text,fontSize:70,w:100,h:100})}
 function render(){
  document.body.classList.add('ss2-open');document.querySelector('.ss2')?.remove();
- document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" aria-label="Page title"><span id="ss2-status">Saved</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button class="primary" id="ss2-export">PDF/JPEG</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Frames</h3><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><h3>Themes</h3><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage" id="ss2-stage"></div></main><aside class="ss2-panel ss2-right"><h3>Object</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div><nav class="ss2-mobilebar"><button data-panel=".ss2-left">＋ Add</button><button id="ss2-mundo">↶</button><button id="ss2-mredo">↷</button><button data-panel=".ss2-right">☷ Edit</button></nav></section>`);
+ document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" aria-label="Page title"><span id="ss2-status">Saved</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button class="primary" id="ss2-export">PDF/JPEG</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Frames</h3><p>Select a photo, then choose its frame.</p><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({none:'▢',heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><h3>Themes</h3><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage-viewport"><div class="ss2-stage" id="ss2-stage"></div></div></main><aside class="ss2-panel ss2-right"><h3>Object</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div><nav class="ss2-mobilebar"><button data-panel=".ss2-left">＋ Add</button><button id="ss2-mundo">↶</button><button id="ss2-mredo">↷</button><button data-panel=".ss2-right">☷ Edit</button></nav></section>`);
  bind();renderStage();fit();updateUndoButtons();
 }
 function objectMarkup(o){
@@ -142,7 +142,7 @@ function objectMarkup(o){
  const inner=o.type==='photo'?`<img draggable="false" src="${o.src}" style="object-fit:${o.fit||'cover'};transform:translate3d(${o.photoX||0}px,${o.photoY||0}px,0) scale(${o.photoScale||1})">`:`<div class="ss2-text" style="font-size:${o.fontSize||50}px;color:${o.color||'#263238'};font-weight:${o.fontWeight||400}">${esc(o.text)}</div>`;
  const cls=`ss2-object ${o.type==='photo'?'ss2-frame':''} ${o.id===selected?'selected':''} ${o.locked?'locked':''}`;
  const decor=o.type==='photo'?`border-color:${o.border||'#fff'};border-width:${o.borderWidth||0}px;box-shadow:0 ${Math.max(2,o.shadow||0)/2}px ${o.shadow||0}px #0007,0 0 ${o.glow||0}px #fff;`:'';
- return `<div class="${cls}" data-id="${o.id}" data-shape="${o.shape||''}" style="${style};${decor}">${inner}</div>`;
+ return `<div class="${cls}" data-id="${o.id}" data-shape="${o.shape||'none'}" style="${style};${decor}">${inner}</div>`;
 }
 function renderStage(){
  const st=document.querySelector('#ss2-stage');if(!st||!state)return;
@@ -164,7 +164,7 @@ function renderControls(){
  c.querySelectorAll('[data-action]').forEach(e=>e.onclick=()=>action(e.dataset.action));
 }
 function updateObjectElement(o){const el=document.querySelector(`.ss2-object[data-id="${CSS.escape(o.id)}"]`);if(!el){renderStage();return}const fresh=document.createRange().createContextualFragment(objectMarkup(o)).firstElementChild;el.replaceWith(fresh);fresh.onpointerdown=startGesture;fresh.ondblclick=editObject}
-function renderLayers(){const l=document.querySelector('#ss2-layers');if(!l)return;l.innerHTML=state.objects.slice().sort((a,b)=>b.z-a.z).map(o=>`<button data-layer="${o.id}">${o.locked?'🔒 ':''}${o.type==='photo'?'📷':o.type==='text'?'T':'😊'} ${esc(o.text||o.shape||'Photo')}</button>`).join('');l.querySelectorAll('button').forEach(b=>b.onclick=()=>{selected=b.dataset.layer;renderStage()})}
+function renderLayers(){const l=document.querySelector('#ss2-layers');if(!l)return;const photos=state.objects.filter(o=>o.type==='photo');l.innerHTML=state.objects.slice().sort((a,b)=>b.z-a.z).map(o=>{const label=o.type==='photo'?`Photo ${photos.indexOf(o)+1}`:(o.text||o.type);return `<button data-layer="${o.id}">${o.locked?'🔒 ':''}${o.type==='photo'?'📷':o.type==='text'?'T':'😊'} ${esc(label)}</button>`}).join('');l.querySelectorAll('button').forEach(b=>b.onclick=()=>{selected=b.dataset.layer;renderStage()})}
 function action(a){
  const o=obj();if(!o)return;snapshot();
  if(a==='delete'){state.objects=state.objects.filter(x=>x.id!==o.id);selected=null}
@@ -174,7 +174,7 @@ function action(a){
  if(a==='back')o.z=Math.min(0,...state.objects.map(x=>x.z))-1;
  if(a==='group'){if(o.group){const g=o.group;state.objects.filter(x=>x.group===g).forEach(x=>x.group=null)}else{o.group=id()}}
  if(a==='fit')o.fit='contain';if(a==='fill')o.fit='cover';if(a==='flipx')o.flipX=(o.flipX||1)*-1;if(a==='flipy')o.flipY=(o.flipY||1)*-1;
- if(a==='replace'){pendingShape=o.shape||'polaroid';document.querySelector('#ss2-files').dataset.replace=o.id;document.querySelector('#ss2-files').click();return}
+ if(a==='replace'){pendingShape=o.shape||'none';document.querySelector('#ss2-files').dataset.replace=o.id;document.querySelector('#ss2-files').click();return}
  renderStage();scheduleSave();
 }
 function editObject(){selected=this.dataset.id;const o=obj();if(!o||o.locked)return;if(o.type!=='photo'){const text=prompt(o.type==='text'?'Edit text':'Edit sticker',o.text);if(text!==null){snapshot();o.text=text;renderStage();scheduleSave()}}}
@@ -188,7 +188,7 @@ function moveGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;gest
 function endGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;if(moveFrame){cancelAnimationFrame(moveFrame);moveFrame=0}const el=gesture.el;gesture=null;el.onpointermove=null;el.onpointerup=null;el.onpointercancel=null;scheduleSave()}
 function scale(){return Number(document.querySelector('#ss2-stage')?.dataset.scale||1)}
 function fit(){
- const wrap=document.querySelector('.ss2-stage-wrap'),st=document.querySelector('#ss2-stage');if(!wrap||!st)return;
+ const wrap=document.querySelector('.ss2-stage-wrap'),viewport=document.querySelector('.ss2-stage-viewport'),st=document.querySelector('#ss2-stage');if(!wrap||!viewport||!st)return;
  const rect=wrap.getBoundingClientRect(),css=getComputedStyle(wrap);
  const px=v=>Number.parseFloat(v)||0;
  const viewportWidth=Math.min(rect.width,document.documentElement.clientWidth||innerWidth);
@@ -196,7 +196,15 @@ function fit(){
  const availableWidth=Math.max(1,viewportWidth-px(css.paddingLeft)-px(css.paddingRight));
  const availableHeight=Math.max(1,viewportHeight-px(css.paddingTop)-px(css.paddingBottom));
  const s=Math.max(.1,Math.min(1,availableWidth/900,availableHeight/675));
- st.style.transform=`scale(${s})`;st.dataset.scale=String(s);st.style.marginBottom=`${675*(s-1)}px`;
+ viewport.style.width=`${900*s}px`;viewport.style.height=`${675*s}px`;
+ st.style.transform=`scale(${s})`;st.dataset.scale=String(s);
+}
+function closePanels(){document.querySelectorAll('.ss2-panel.open').forEach(p=>p.classList.remove('open'))}
+function applyFrame(shape){
+ const o=obj();if(!o||o.type!=='photo'){alert('Tap a photo on the scrapbook page first, then choose a frame.');return}
+ snapshot();o.shape=shape;
+ if(shape==='none'){o.borderWidth=0;o.shadow=0;o.glow=0}else if(!Number(o.borderWidth)){o.borderWidth=6}
+ renderStage();scheduleSave();closePanels();
 }
 function bind(){
  renderController?.abort();renderController=new AbortController();const {signal}=renderController;
@@ -204,24 +212,24 @@ function bind(){
  on(document.querySelector('#ss2-close'),'click',close);
  on(document.querySelector('#ss2-title'),'input',e=>{state.title=e.target.value;scheduleSave()});
  on(document.querySelector('#ss2-undo'),'click',undo);on(document.querySelector('#ss2-redo'),'click',redo);on(document.querySelector('#ss2-mundo'),'click',undo);on(document.querySelector('#ss2-mredo'),'click',redo);
- on(document.querySelector('#ss2-photo'),'click',()=>{pendingShape='polaroid';document.querySelector('#ss2-files').click()});
+ on(document.querySelector('#ss2-photo'),'click',()=>{pendingShape='none';document.querySelector('#ss2-files').click()});
  on(document.querySelector('#ss2-files'),'change',handleFiles);
  on(document.querySelector('#ss2-text'),'click',addText);on(document.querySelector('#ss2-emoji'),'click',()=>{const text=prompt('Enter emoji','😊');if(text)addSticker(text)});
- document.querySelectorAll('[data-frame]').forEach(b=>on(b,'click',()=>{pendingShape=b.dataset.frame;document.querySelector('#ss2-files').click()}));
+ document.querySelectorAll('[data-frame]').forEach(b=>on(b,'click',()=>applyFrame(b.dataset.frame)));
  document.querySelectorAll('[data-sticker]').forEach(b=>on(b,'click',()=>addSticker(b.dataset.sticker)));
- on(document.querySelector('#ss2-theme'),'change',e=>{snapshot();state.theme=e.target.value;renderStage();scheduleSave()});
- document.querySelectorAll('[data-panel]').forEach(b=>on(b,'click',()=>document.querySelector(b.dataset.panel)?.classList.toggle('open')));
+ on(document.querySelector('#ss2-theme'),'change',e=>{snapshot();state.theme=e.target.value;renderStage();scheduleSave();closePanels()});
+ document.querySelectorAll('[data-panel]').forEach(b=>on(b,'click',()=>{const panel=document.querySelector(b.dataset.panel),wasOpen=panel?.classList.contains('open');closePanels();if(panel&&!wasOpen)panel.classList.add('open')}));
  on(document.querySelector('#ss2-export'),'click',exportPage);
 }
 async function handleFiles(e){
  const input=e.currentTarget;const files=[...input.files];const replaceId=input.dataset.replace||'';delete input.dataset.replace;input.value='';
- const shape=pendingShape||'polaroid';pendingShape=null;if(!files.length)return;
- if(replaceId){const target=state.objects.find(x=>x.id===replaceId);if(target){snapshot();target.src=await compressImage(files[0]);target.shape=shape;selected=target.id;renderStage();scheduleSave()}return}
+ const shape=pendingShape||'none';pendingShape=null;if(!files.length)return;
+ if(replaceId){const target=state.objects.find(x=>x.id===replaceId);if(target){snapshot();target.src=await compressImage(files[0]);target.name=files[0].name||target.name||'';target.shape=shape;selected=target.id;renderStage();scheduleSave()}return}
  for(const file of files)await addPhoto(file,shape);
 }
 async function exportPage(){
  selected=null;renderStage();setStatus('Exporting…');
- try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.2.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.2.pdf')}}finally{setStatus('Saved')}
+ try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.3.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.3.pdf')}}finally{setStatus('Saved')}
 }
 function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook'}
 function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=load();history=[];future=[];selected=null;render()}

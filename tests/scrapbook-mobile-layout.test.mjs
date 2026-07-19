@@ -9,6 +9,8 @@ const worker = readFileSync(new URL('../service-worker.js', import.meta.url), 'u
 test('mobile editor cannot inherit the fixed stage width', () => {
   assert.match(css, /grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css, /\.ss2-stage-wrap\{[^}]*min-width:0[^}]*overflow:hidden/);
+  assert.match(css, /\.ss2-stage-viewport\{[^}]*position:relative/);
+  assert.match(studio, /class="ss2-stage-viewport"/);
 });
 
 test('studio covers and isolates itself from the app chrome', () => {
@@ -19,8 +21,21 @@ test('studio covers and isolates itself from the app chrome', () => {
 test('fit is clamped to the visible viewport', () => {
   assert.match(studio, /Math\.min\(rect\.width,document\.documentElement\.clientWidth/);
   assert.match(studio, /availableWidth\/900,availableHeight\/675/);
+  assert.match(studio, /viewport\.style\.width=`\$\{900\*s\}px`/);
   const phoneWidth = 412 - 16;
   assert.ok(phoneWidth / 900 < 0.5, 'a 900px stage should scale below 50% on a 412px phone');
+});
+
+test('frames style the selected photo instead of opening the file picker', () => {
+  assert.match(studio, /\[data-frame\][\s\S]*applyFrame\(b\.dataset\.frame\)/);
+  assert.doesNotMatch(studio, /\[data-frame\][^\n]*ss2-files[^\n]*click/);
+  assert.match(studio, /Photo \$\{photos\.indexOf\(o\)\+1\}/);
+  assert.match(studio, /pendingShape='none'/);
+});
+
+test('only one mobile panel can remain open', () => {
+  assert.match(studio, /function closePanels\(\)/);
+  assert.match(studio, /const panel=document\.querySelector\(b\.dataset\.panel\),wasOpen/);
 });
 
 test('PWA core cache only references files that exist', () => {
