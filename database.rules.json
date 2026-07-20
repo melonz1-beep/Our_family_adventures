@@ -7,13 +7,30 @@
         "familyMembers": {
           "$uid": {
             ".read": "auth != null && (auth.uid == $uid || (root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin'))",
-            ".write": "auth != null && ((root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin') || (auth.uid == $uid && !data.exists() && newData.child('active').val() == true && newData.child('email').val() == auth.token.email && ((newData.child('role').val() == 'Admin' && auth.token.email == root.child('families').child($familyId).child('publicData').child('settings').child('template').child('adminEmail').val()) || (newData.child('role').val() != 'Admin' && newData.child('inviteId').exists() && newData.child('inviteCode').val() == root.child('families').child($familyId).child('pendingInvites').child(newData.child('inviteId').val()).child('code').val() && auth.token.email == root.child('families').child($familyId).child('pendingInvites').child(newData.child('inviteId').val()).child('email').val()))))",
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin'",
             ".validate": "!newData.exists() || (newData.hasChildren(['uid','email','role','active']) && newData.child('uid').val() == $uid && newData.child('email').isString() && (newData.child('role').val() == 'Admin' || newData.child('role').val() == 'Family' || newData.child('role').val() == 'Guest' || newData.child('role').val() == 'Child') && newData.child('active').isBoolean())"
           }
         },
         "publicData": {
           ".read": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true",
-          ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true"
+          "version": {
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true"
+          },
+          "people": {
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true"
+          },
+          "profiles": {
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true"
+          },
+          "shared": {
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true"
+          },
+          "settings": {
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin'"
+          },
+          "locks": {
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin'"
+          }
         },
         "scrapbookStudioV2": {
           ".read": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true",
@@ -26,13 +43,13 @@
         "familyTrips": {
           ".read": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true",
           "$tripId": {
-            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && (newData.exists() || root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin' || data.child('trip/ownerUid').val() == auth.uid)"
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && ((!data.exists() && newData.exists() && newData.child('trip/ownerUid').val() == auth.uid) || (data.exists() && newData.exists() && newData.child('trip/ownerUid').val() == data.child('trip/ownerUid').val()) || (!newData.exists() && (root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin' || data.child('trip/ownerUid').val() == auth.uid)))"
           }
         },
         "privateTrips": {
           "$tripId": {
             ".read": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && (root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin' || data.child('trip/ownerUid').val() == auth.uid || root.child('families').child($familyId).child('tripMembers').child($tripId).child(auth.uid).val() == true)",
-            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && (root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin' || data.child('trip/ownerUid').val() == auth.uid || newData.child('trip/ownerUid').val() == auth.uid || root.child('families').child($familyId).child('tripMembers').child($tripId).child(auth.uid).val() == true)"
+            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && ((!data.exists() && newData.exists() && newData.child('trip/ownerUid').val() == auth.uid) || (data.exists() && newData.exists() && newData.child('trip/ownerUid').val() == data.child('trip/ownerUid').val() && (root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin' || data.child('trip/ownerUid').val() == auth.uid || root.child('families').child($familyId).child('tripMembers').child($tripId).child(auth.uid).val() == true)) || (!newData.exists() && (root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin' || data.child('trip/ownerUid').val() == auth.uid)))"
           }
         },
         "tripAccess": {
@@ -66,8 +83,8 @@
         },
         "pendingInvites": {
           ".indexOn": ["code", "email"],
+          ".read": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin'",
           "$inviteId": {
-            ".read": false,
             ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin'"
           }
         },
@@ -84,7 +101,7 @@
         "notificationQueue": {
           "$queueId": {
             ".read": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && (data.child('actorUid').val() == auth.uid || root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('role').val() == 'Admin')",
-            ".write": "auth != null && root.child('families').child($familyId).child('familyMembers').child(auth.uid).child('active').val() == true && !data.exists() && newData.child('actorUid').val() == auth.uid && newData.child('targets').exists() && newData.child('text').isString()"
+            ".write": false
           }
         }
       }
