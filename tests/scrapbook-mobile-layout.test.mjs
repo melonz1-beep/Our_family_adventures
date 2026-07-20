@@ -5,6 +5,8 @@ import test from 'node:test';
 const css = readFileSync(new URL('../scrapbook-studio-2.css', import.meta.url), 'utf8');
 const studio = readFileSync(new URL('../scrapbook-studio-2.js', import.meta.url), 'utf8');
 const worker = readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
+const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
 test('mobile editor cannot inherit the fixed stage width', () => {
   assert.match(css, /grid-template-columns:minmax\(0,1fr\)/);
@@ -50,7 +52,7 @@ test('mobile add and edit tools live in the top toolbar', () => {
 });
 
 test('mobile precision editing uses a bottom sheet and canvas quick controls', () => {
-  assert.match(css, /\.ss2-right\{left:0;right:0;top:46%/);
+  assert.match(css, /\.ss2-right\{left:0;right:0;top:36%/);
   assert.match(studio, /id="ss2-quickbar"/);
   assert.match(studio, /function renderQuickbar\(\)/);
   assert.match(studio, /data-quick="zoomin"/);
@@ -90,11 +92,12 @@ test('draft photos use IndexedDB instead of filling localStorage', () => {
 });
 
 test('page naming, save draft, and finalization are explicit', () => {
-  assert.match(studio, /placeholder="Untitled scrapbook — tap to name"/);
+  assert.match(studio, /function defaultTitle\(name=context\(\)\.name\)/);
   assert.match(studio, /e=>e\.target\.select\(\)/);
   assert.match(studio, /function saveDraft\(\)/);
   assert.match(studio, /function finalizePage\(\)/);
-  assert.match(studio, /Name this scrapbook before finalizing/);
+  assert.match(studio, /Finalized Page/);
+  assert.match(css, /\.ss2\.viewing \.ss2-panel/);
 });
 
 test('saved pages are separate drafts that can be closed and reopened', () => {
@@ -122,6 +125,42 @@ test('exports render a clean full-size clone instead of the scaled phone canvas'
 test('only one mobile panel can remain open', () => {
   assert.match(studio, /function closePanels\(\)/);
   assert.match(studio, /const panel=document\.querySelector\(b\.dataset\.panel\),wasOpen/);
+});
+
+test('the app and editor share drafts, user identity, theme, and Media photos', () => {
+  assert.match(app, /window\.OurFamilyAdventuresBridge=/);
+  assert.match(app, /savePage:saveStudioPageRecord/);
+  assert.match(app, /media:arr\('media'\)/);
+  assert.match(studio, /bridge\(\)\?\.savePage\?\.\(clone\(state\)\)/);
+  assert.match(studio, /bridge\(\)\?\.uploadPhotos\?\.\(files\)/);
+  assert.match(studio, /classList\.toggle\('dark',context\(\)\.theme==='dark'\)/);
+  assert.match(studio, /async function openPage\(pageId/);
+});
+
+test('remote photo URLs remain portable while local uploads use IndexedDB', () => {
+  assert.match(studio, /!\/\^https\?:\/i\.test\(String\(o\.src\)\)/);
+  assert.match(studio, /String\(o\.src\)\.startsWith\('idb:'\)\|\|\/\^https\?:\/i/);
+  assert.match(studio, /const family=context\(\)\.familyId/);
+});
+
+test('Memories link thumbnails to Media and can repair Firebase URLs', () => {
+  assert.match(app, /mediaIds\.push\(r\.value\.id\)/);
+  assert.match(app, /function memoryPhotoItems\(memory\)/);
+  assert.match(app, /function repairMemoryThumbnail\(img,mediaId\)/);
+  assert.match(app, /firebase\.storage\(\)\.ref\(media\.storagePath\)\.getDownloadURL\(\)/);
+});
+
+test('text cutouts and professional theme arrangements are available', () => {
+  assert.match(studio, /data-text-preset="speech"/);
+  assert.match(studio, /Font color/);
+  assert.match(studio, /No background fill/);
+  assert.match(studio, /function applyThemeLayout\(\)/);
+  assert.match(css, /data-text-shape=speech/);
+});
+
+test('all release entry points use version 10.3.7', () => {
+  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.7/);
+  for (const source of [app, studio, worker, index]) assert.doesNotMatch(source, /10\.3\.6/);
 });
 
 test('PWA core cache only references files that exist', () => {

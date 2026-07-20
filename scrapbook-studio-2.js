@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const V='10.3.6';
+const V='10.3.7';
 const KEY='ofa-scrapbook-studio-2';
 const RECOVERY_KEY=`${KEY}-recovery`;
 const DRAFT_INDEX_KEY=`${KEY}-draft-index`;
@@ -121,26 +121,30 @@ let multiSelected=new Set(),editAll=false,frameAll=false,photoEditMode=false;
 let renderController=null,lastLocalHash='',lastFirebaseHash='',syncPromise=Promise.resolve(),moveFrame=0,dirty=false,closing=false;
 const imageAssets=new Map();
 const savedPhotoAssets=new Map();
+const bridge=()=>window.OurFamilyAdventuresBridge||null;
+const context=()=>bridge()?.getContext?.()||{uid:localStorage.getItem('ofa-uid')||'local-user',name:'Family member',theme:document.body.classList.contains('dark')?'dark':'light',media:[]};
 const uid=()=>localStorage.getItem('ofa-uid')||'local-user';
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x));
 const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)};
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function blank(){return {id:id(),title:'',status:'draft',theme:'Sea Glass',objects:[],updatedAt:Date.now(),owner:uid(),version:V}}
-function normalize(raw){const next=raw&&Array.isArray(raw.objects)?raw:blank();next.version=V;next.theme=THEMES[next.theme]?next.theme:'Sea Glass';next.status=next.status||'draft';if(next.title==='Untitled Scrapbook Page')next.title='';return next}
+function defaultTitle(name=context().name){return `${name||'Family member'}'s scrapbook · ${new Date().toLocaleDateString()}`}
+function blank(){const ctx=context();return {id:id(),title:defaultTitle(ctx.name),status:'draft',theme:'Sea Glass',objects:[],createdAt:Date.now(),updatedAt:Date.now(),owner:ctx.uid||uid(),authorName:ctx.name||'Family member',tripId:ctx.tripId||'',version:V}}
+function normalize(raw){const next=raw&&Array.isArray(raw.objects)?raw:blank(),ctx=context();next.version=V;next.theme=THEMES[next.theme]?next.theme:'Sea Glass';next.status=next.status||'draft';next.owner=next.owner||ctx.uid||uid();next.authorName=next.authorName||ctx.name||'Family member';next.title=next.title&&next.title!=='Untitled Scrapbook Page'?next.title:defaultTitle(next.authorName);next.createdAt=next.createdAt||next.updatedAt||Date.now();return next}
 function draftKey(pageId){return `${DRAFT_PREFIX}${pageId}`}
 function readDraftIndex(){try{const value=JSON.parse(localStorage.getItem(DRAFT_INDEX_KEY)||'[]');return Array.isArray(value)?value:[]}catch{return[]}}
-function updateDraftIndex(){const meta={id:state.id,title:String(state.title||''),theme:state.theme,status:state.status||'draft',updatedAt:state.updatedAt||Date.now(),photoCount:state.objects.filter(o=>o.type==='photo').length};const next=[meta,...readDraftIndex().filter(x=>x.id!==meta.id)].sort((a,b)=>Number(b.updatedAt)-Number(a.updatedAt));localStorage.setItem(DRAFT_INDEX_KEY,JSON.stringify(next))}
+function updateDraftIndex(){const meta={id:state.id,title:String(state.title||''),theme:state.theme,status:state.status||'draft',owner:state.owner,authorName:state.authorName,createdAt:state.createdAt,updatedAt:state.updatedAt||Date.now(),photoCount:state.objects.filter(o=>o.type==='photo').length};const next=[meta,...readDraftIndex().filter(x=>x.id!==meta.id)].sort((a,b)=>Number(b.updatedAt)-Number(a.updatedAt));localStorage.setItem(DRAFT_INDEX_KEY,JSON.stringify(next))}
 function assetDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open(ASSET_DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(ASSET_STORE))request.result.createObjectStore(ASSET_STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
 async function assetPut(key,value){const db=await assetDb();return new Promise((resolve,reject)=>{const tx=db.transaction(ASSET_STORE,'readwrite');tx.objectStore(ASSET_STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>{db.close();reject(tx.error)}})}
 async function assetGet(key){const db=await assetDb();return new Promise((resolve,reject)=>{const tx=db.transaction(ASSET_STORE,'readonly'),request=tx.objectStore(ASSET_STORE).get(key);request.onsuccess=()=>resolve(request.result||'');request.onerror=()=>reject(request.error);tx.oncomplete=()=>db.close()})}
-async function storePhotoAssets(){for(const o of state.objects){if(o.type!=='photo'||!o.src||String(o.src).startsWith('idb:'))continue;o.assetKey=o.assetKey||`${state.id}:${o.id}`;if(savedPhotoAssets.get(o.assetKey)===o.src)continue;await assetPut(o.assetKey,o.src);savedPhotoAssets.set(o.assetKey,o.src)}}
-function storageCopy(){const next=clone(state);next.objects.forEach(o=>{if(o.type==='photo'&&o.src){o.assetKey=o.assetKey||`${next.id}:${o.id}`;o.src=`idb:${o.assetKey}`}});return next}
+async function storePhotoAssets(){for(const o of state.objects){if(o.type!=='photo'||!o.src||String(o.src).startsWith('idb:')||/^https?:/i.test(String(o.src)))continue;o.assetKey=o.assetKey||`${state.id}:${o.id}`;if(savedPhotoAssets.get(o.assetKey)===o.src)continue;await assetPut(o.assetKey,o.src);savedPhotoAssets.set(o.assetKey,o.src)}}
+function storageCopy(){const next=clone(state);next.objects.forEach(o=>{if(o.type==='photo'&&o.src&&!/^https?:/i.test(String(o.src))){o.assetKey=o.assetKey||`${next.id}:${o.id}`;o.src=`idb:${o.assetKey}`}});return next}
 async function hydrateAssets(next){await Promise.all(next.objects.map(async o=>{if(o.type!=='photo'||!String(o.src).startsWith('idb:'))return;const key=o.assetKey||String(o.src).slice(4);o.assetKey=key;try{o.src=await assetGet(key);if(o.src)savedPhotoAssets.set(key,o.src)}catch(e){console.warn('Photo recovery',e);o.src=''}}));return next}
 async function load(pageId=''){
  try{
   const activeId=pageId||localStorage.getItem(ACTIVE_DRAFT_KEY)||'';
-  const primary=JSON.parse((activeId&&localStorage.getItem(draftKey(activeId)))||localStorage.getItem(KEY)||'null');
+  let primary=JSON.parse((activeId&&localStorage.getItem(draftKey(activeId)))||localStorage.getItem(KEY)||'null');
+  if(!primary&&activeId&&bridge()?.loadPage)primary=await bridge().loadPage(activeId,window.__ss2OwnerUid||'');
   const recovery=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||'null');
   const matchingRecovery=recovery&&(!primary||recovery.id===primary.id)?recovery:null;
   const best=matchingRecovery&&(!primary||Number(matchingRecovery.updatedAt)>Number(primary.updatedAt))?matchingRecovery:primary;
@@ -174,6 +178,7 @@ async function persist({force=false,sync=true}={}){
   updateDraftIndex();
   sessionStorage.setItem(RECOVERY_KEY,serialized);
   lastLocalHash=currentHash;dirty=false;setStatus('Saved');
+  bridge()?.savePage?.(clone(state));
   if(sync)queueFirebaseSync(serialized,currentHash);
   return true;
  }catch(e){
@@ -192,7 +197,8 @@ function queueFirebaseSync(serialized,currentHash){
    if(!user||!window.firebase?.database)return;
    if(currentHash===lastFirebaseHash)return;
    const payload=JSON.parse(serialized);
-   await firebase.database().ref(`families/default-family/scrapbookStudioV2/${user.uid}/${payload.id}`).update(payload);
+   const family=context().familyId||'default-family';
+   await firebase.database().ref(`families/${family}/scrapbookStudioV2/${user.uid}/${payload.id}`).update(payload);
    lastFirebaseHash=currentHash;
   }catch(e){console.warn('Scrapbook 2 sync',e);setStatus('Saved on device')}
  });
@@ -240,9 +246,20 @@ async function addPhoto(file,shape='none'){
 }
 function addText(){add('text',{text:'Double-tap to edit',fontSize:34,color:'#263238',fontWeight:700,w:330,h:90})}
 function addSticker(text){add('sticker',{text,fontSize:70,w:100,h:100})}
+function addTextPreset(shape='plain'){add('text',{text:shape==='speech'?'A favorite memory':shape==='note'?'Remember this…':'Family memory',fontSize:34,color:'#263238',fontWeight:700,fontFamily:'Georgia,serif',backgroundColor:shape==='plain'?'transparent':'#fff4c7',borderColor:'#7f6655',textShape:shape,w:shape==='speech'?360:300,h:shape==='label'?78:120})}
+function mediaMarkup(){const media=context().media||[];return media.length?`<div class="ss2-media-grid">${media.map(item=>`<label><input type="checkbox" data-media-photo="${esc(item.id)}"><img src="${esc(item.url)}" alt="${esc(item.name||'Media photo')}"><span>${esc(item.name||'Photo')}</span></label>`).join('')}</div><button id="ss2-add-media" class="primary">Add selected Media photos</button>`:'<p>No saved Media photos are available yet. You can still upload from your phone.</p>'}
+function addMediaPhotos(){const media=context().media||[],chosen=[...document.querySelectorAll('[data-media-photo]:checked')].map(input=>media.find(item=>item.id===input.dataset.mediaPhoto)).filter(Boolean);if(!chosen.length){notice('Select at least one Media photo');return}chosen.forEach((item,i)=>addPhotoUrl(item.url,item.name||'Media photo',i,'none'));closePanels();notice(`${chosen.length} Media photo${chosen.length===1?'':'s'} added`)}
+function addPhotoUrl(src,name='',offset=0,shape='none'){add('photo',{src,name,shape,border:'#fff',borderWidth:0,shadow:0,glow:0,fit:'cover',flipX:1,flipY:1,photoScale:1,photoX:0,photoY:0,x:80+(offset%4)*26,y:70+(offset%4)*24})}
 function render(){
  document.body.classList.add('ss2-open');document.querySelector('.ss2')?.remove();
  document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" placeholder="Untitled scrapbook — tap to name" aria-label="Page title"><span id="ss2-status">${state.status==='final'?'Finalized':'Draft saved'}</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button id="ss2-close-page">Close Page</button><button id="ss2-save">Save Draft</button><button id="ss2-finalize">${state.status==='final'?'Finalized ✓':'Finalize'}</button><button class="primary" id="ss2-export">Export</button><button class="ss2-mobiletool" data-panel=".ss2-left">＋ Add</button><button class="ss2-mobiletool" id="ss2-mclose-page">Close</button><button class="ss2-mobiletool" id="ss2-msave">Save</button><button class="ss2-mobiletool" id="ss2-mfinalize">Finalize</button><button class="ss2-mobiletool" data-panel=".ss2-right">☷ Edit</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><button class="ss2-panel-close" type="button" aria-label="Close add panel">×</button><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Professional scrapbook layouts</h3><p>Layered papers, stitching, ribbons, journaling details, and coordinated embellishments.</p><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><h3>Frames</h3><label class="ss2-check"><input id="ss2-frame-all" type="checkbox" ${frameAll?'checked':''}> Add frame to every photo</label><p>Or check photos in Edit to frame only those.</p><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({none:'▢',heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage-viewport"><div class="ss2-stage" id="ss2-stage"></div></div><div id="ss2-quickbar" class="ss2-quickbar"></div></main><aside class="ss2-panel ss2-right"><button class="ss2-panel-close" type="button" aria-label="Close edit panel">×</button><h3>Edit</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div><section id="ss2-pages" class="ss2-pages" hidden><div class="ss2-pages-card"><header><div><h2>Saved scrapbook pages</h2><p>Open a draft or start a new page. Photos stay with each saved page on this device.</p></div><button id="ss2-pages-back" type="button" aria-label="Return to current page">×</button></header><div class="ss2-pages-actions"><button class="primary" id="ss2-new-page">＋ New Page</button><button id="ss2-pages-app">← Back to App</button></div><div id="ss2-draft-list" class="ss2-draft-list"></div></div></section><section id="ss2-export-menu" class="ss2-export-menu" hidden><div class="ss2-export-card"><h2>Export full page</h2><p>Your complete 900 × 675 scrapbook page will be exported without editor controls.</p><div><button class="primary" data-export-format="jpeg">Download JPEG</button><button class="primary" data-export-format="pdf">Download PDF</button><button id="ss2-export-cancel">Cancel</button></div></div></section><div id="ss2-notice" class="ss2-notice" role="status"></div></section>`);
+ const editor=document.querySelector('.ss2'),left=document.querySelector('.ss2-left'),title=document.querySelector('#ss2-title'),heading=document.querySelector('.ss2-top h2');
+ editor?.classList.toggle('dark',context().theme==='dark');editor?.classList.toggle('viewing',state.status==='final');
+ if(heading)heading.textContent=state.status==='final'?'Finalized Page':'Scrapbook Editor';if(title){title.placeholder='Page title';title.readOnly=state.status==='final'}
+ title?.insertAdjacentHTML('afterend',`<span class="ss2-author">By ${esc(state.authorName)}</span>`);
+ if(state.status==='final'){document.querySelector('#ss2-close-page').textContent='Back to Scrapbook';document.querySelector('#ss2-mclose-page').textContent='Back'}
+ const fileInput=document.querySelector('#ss2-files');fileInput?.insertAdjacentHTML('afterend',`<section class="ss2-source-section"><h3>Photos from Media</h3>${mediaMarkup()}<h3>Text cutouts</h3><div class="ss2-text-presets"><button data-text-preset="plain">Plain text</button><button data-text-preset="speech">💬 Chat bubble</button><button data-text-preset="note">📝 Note card</button><button data-text-preset="label">🏷️ Label</button></div></section>`);
+ document.querySelector('#ss2-theme')?.insertAdjacentHTML('afterend','<button id="ss2-theme-layout">Arrange photos for this theme</button>');
  bind();renderStage();fit();updateUndoButtons();
 }
 function objectMarkup(o){
@@ -250,8 +267,8 @@ function objectMarkup(o){
  const photoDecor=o.type==='photo'?`border-color:${o.border||'#fff'};border-width:${o.borderWidth||0}px;box-shadow:0 ${Math.max(2,o.shadow||0)/2}px ${o.shadow||0}px #0007,0 0 ${o.glow||0}px #fff;`:'';
  let inner='';
  if(o.type==='photo')inner=`<div class="ss2-object-content ss2-frame" data-shape="${o.shape||'none'}" style="${photoDecor}"><img draggable="false" src="${o.src}" style="object-fit:${o.fit||'cover'};transform:translate3d(${o.photoX||0}px,${o.photoY||0}px,0) scale(${o.photoScale||1})"></div><span class="ss2-photo-number">${photoNumber(o)}</span>`;
- else inner=`<div class="ss2-object-content"><div class="ss2-text" style="font-size:${o.type==='sticker'?Math.max(18,Math.min(o.w,o.h)*.72):(o.fontSize||50)}px;color:${o.color||'#263238'};font-weight:${o.fontWeight||400}">${esc(o.text)}</div></div>`;
- if(o.id===selected)inner+='<button class="ss2-delete-handle" type="button" aria-label="Delete selected object">×</button><button class="ss2-resize-handle" type="button" aria-label="Resize selected object"></button>';
+ else inner=`<div class="ss2-object-content"><div class="ss2-text" data-text-shape="${o.textShape||'plain'}" style="font-size:${o.type==='sticker'?Math.max(18,Math.min(o.w,o.h)*.72):(o.fontSize||50)}px;color:${o.color||'#263238'};font-weight:${o.fontWeight||400};font-family:${o.fontFamily||'system-ui,sans-serif'};background:${o.backgroundColor||'transparent'};border-color:${o.borderColor||'transparent'}">${esc(o.text)}</div></div>`;
+ if(o.id===selected&&state.status!=='final')inner+='<button class="ss2-delete-handle" type="button" aria-label="Delete selected object">×</button><button class="ss2-resize-handle" type="button" aria-label="Resize selected object"></button>';
  const cls=`ss2-object ${o.id===selected?'selected':''} ${multiSelected.has(o.id)?'multi-selected':''} ${o.locked?'locked':''}`;
  return `<div class="${cls}" data-id="${o.id}" style="${style}">${inner}</div>`;
 }
@@ -259,7 +276,7 @@ function renderStage(){
  const st=document.querySelector('#ss2-stage');if(!st||!state)return;
  const th=THEMES[state.theme]||THEMES['Sea Glass'];st.style.background=th[0];st.style.backgroundImage=themeArt(state.theme);st.style.backgroundSize='cover';st.style.backgroundPosition='center';st.dataset.corner='';
  st.innerHTML=state.objects.length?state.objects.slice().sort((a,b)=>a.z-b.z).map(objectMarkup).join(''):'<div class="ss2-empty">Tap + to add photos, stickers, or text</div>';
- st.querySelectorAll('.ss2-object').forEach(el=>{el.onpointerdown=startGesture;el.ondblclick=editObject});
+ if(state.status!=='final')st.querySelectorAll('.ss2-object').forEach(el=>{el.onpointerdown=startGesture;el.ondblclick=editObject});
  st.querySelectorAll('.ss2-delete-handle').forEach(button=>{button.onpointerdown=e=>e.stopPropagation();button.onclick=e=>{e.stopPropagation();removeObject(button.closest('.ss2-object').dataset.id)}});
  renderControls();renderLayers();renderQuickbar();
 }
@@ -267,7 +284,8 @@ function renderControls(){
  const c=document.querySelector('#ss2-controls'),o=obj();if(!c)return;if(!o){c.innerHTML=`${photoSelectionTools()}<p>Select an object on the page or choose a numbered photo below.</p>`;return}
  const targets=editTargets(),sizeName=o.type==='photo'?'Frame':o.type==='sticker'?'Sticker':'Object';
  const photoTools=o.type==='photo'?`<h3>Photo inside frame</h3><button data-action="inside" class="${photoEditMode?'active':''}">${photoEditMode?'Move photo now':'Edit photo inside frame'}</button><p class="ss2-help">Use these sliders or turn on photo editing and drag the photo.</p><label>Photo zoom <input data-photo-prop="photoScale" type="range" min=".25" max="4" step=".05" value="${o.photoScale||1}"></label><label>Photo left / right <input data-photo-prop="photoX" type="range" min="-500" max="500" value="${o.photoX||0}"></label><label>Photo up / down <input data-photo-prop="photoY" type="range" min="-400" max="400" value="${o.photoY||0}"></label><div class="ss2-grid"><button data-action="centerphoto">Center</button><button data-action="fit">Fit</button><button data-action="fill">Fill</button><button data-action="flipx">Flip ↔</button><button data-action="flipy">Flip ↕</button><button data-action="replace">Replace</button></div><h3>Frame style</h3><label>Border <input data-prop="border" type="color" value="${o.border||'#ffffff'}"></label><label>Border thickness <input data-prop="borderWidth" type="range" min="0" max="40" value="${o.borderWidth||0}"></label><label>Shadow <input data-prop="shadow" type="range" min="0" max="50" value="${o.shadow||0}"></label><label>Glow <input data-prop="glow" type="range" min="0" max="40" value="${o.glow||0}"></label>`:'';
- c.innerHTML=`<h3>${o.type==='photo'?'Photo '+photoNumber(o):o.type}</h3>${photoSelectionTools()}${editAll&&targets.length?`<p class="ss2-bulk-note">Editing ${targets.length} checked photos together.</p>`:''}<div class="ss2-grid"><button data-action="forward">Forward</button><button data-action="back">Back</button><button data-action="duplicate">Duplicate</button><button data-action="lock">${o.locked?'Unlock':'Lock'}</button><button data-action="group">${o.group?'Ungroup':'Group'}</button><button data-action="delete">Delete</button></div><h3>${sizeName} size</h3><label>${sizeName} width <input data-prop="w" type="range" min="30" max="850" value="${o.w}"></label><label>${sizeName} height <input data-prop="h" type="range" min="30" max="630" value="${o.h}"></label><label>Rotate <input data-prop="r" type="range" min="-180" max="180" value="${o.r}"></label><label>Opacity <input data-prop="opacity" type="range" min=".1" max="1" step=".05" value="${o.opacity??1}"></label>${photoTools}`;
+ const textTools=o.type==='text'?`<h3>Text style</h3><label>Font <select data-prop="fontFamily"><option value="system-ui,sans-serif" ${o.fontFamily==='system-ui,sans-serif'?'selected':''}>Clean</option><option value="Georgia,serif" ${o.fontFamily==='Georgia,serif'?'selected':''}>Classic serif</option><option value="'Trebuchet MS',sans-serif" ${o.fontFamily==="'Trebuchet MS',sans-serif"?'selected':''}>Friendly</option><option value="'Brush Script MT',cursive" ${o.fontFamily==="'Brush Script MT',cursive"?'selected':''}>Script</option><option value="'Courier New',monospace" ${o.fontFamily==="'Courier New',monospace"?'selected':''}>Typewriter</option></select></label><label>Font color <input data-prop="color" type="color" value="${o.color||'#263238'}"></label><label>Fill color <input data-prop="backgroundColor" type="color" value="${o.backgroundColor&&o.backgroundColor!=='transparent'?o.backgroundColor:'#fff4c7'}"></label><label>Cutout <select data-prop="textShape"><option value="plain" ${o.textShape==='plain'?'selected':''}>Plain</option><option value="speech" ${o.textShape==='speech'?'selected':''}>Chat bubble</option><option value="note" ${o.textShape==='note'?'selected':''}>Note card</option><option value="label" ${o.textShape==='label'?'selected':''}>Label</option></select></label><button data-action="textnofill">No background fill</button>`:'';
+ c.innerHTML=`<h3>${o.type==='photo'?'Photo '+photoNumber(o):o.type}</h3>${photoSelectionTools()}${editAll&&targets.length?`<p class="ss2-bulk-note">Editing ${targets.length} checked photos together.</p>`:''}<div class="ss2-grid"><button data-action="forward">Forward</button><button data-action="back">Back</button><button data-action="duplicate">Duplicate</button><button data-action="lock">${o.locked?'Unlock':'Lock'}</button><button data-action="group">${o.group?'Ungroup':'Group'}</button><button data-action="delete">Delete</button></div><h3>${sizeName} size</h3><label>${sizeName} width <input data-prop="w" type="range" min="30" max="850" value="${o.w}"></label><label>${sizeName} height <input data-prop="h" type="range" min="30" max="630" value="${o.h}"></label><label>Rotate <input data-prop="r" type="range" min="-180" max="180" value="${o.r}"></label><label>Opacity <input data-prop="opacity" type="range" min=".1" max="1" step=".05" value="${o.opacity??1}"></label>${photoTools}${textTools}`;
  c.querySelectorAll('[data-prop]').forEach(input=>{
   let captured=false;
   const capture=()=>{if(!captured){snapshot();captured=true}};
@@ -293,14 +311,14 @@ function removeObject(objectId){const target=state.objects.find(x=>x.id===object
 function renderQuickbar(){
  const q=document.querySelector('#ss2-quickbar'),o=obj();if(!q)return;
  if(!o){q.innerHTML='<span class="ss2-quick-hint">Tap a photo or sticker for quick editing.</span><button data-quick="undo">↶ Undo</button><button data-quick="redo">Redo ↷</button>'}
- else if(o.type==='photo')q.innerHTML=`<strong>Photo ${photoNumber(o)}</strong><button data-quick="inside" class="${photoEditMode?'active':''}">${photoEditMode?'Move photo now':'Move photo'}</button><button data-quick="zoomout">Zoom −</button><button data-quick="zoomin">Zoom +</button><button data-quick="fit">Fit</button><button data-quick="fill">Fill</button><button class="danger" data-quick="delete">Delete</button><div class="ss2-quick-frames">${SHAPES.map(shape=>`<button data-quick-frame="${shape}" class="${shape===(o.shape||'none')?'active':''}">${shape==='none'?'No frame':shape}</button>`).join('')}</div>`
- else q.innerHTML=`<strong>${o.type==='sticker'?'Sticker':'Text'}</strong><button data-quick="smaller">Smaller</button><button data-quick="larger">Larger</button><button data-quick="rotate">Rotate</button><button data-quick="duplicate">Duplicate</button><button class="danger" data-quick="delete">Delete</button>`;
+ else if(o.type==='photo')q.innerHTML=`<strong>Photo ${photoNumber(o)}</strong><button data-quick="undo">↶ Undo</button><button data-quick="redo">Redo ↷</button><button data-quick="inside" class="${photoEditMode?'active':''}">${photoEditMode?'Move photo now':'Move photo'}</button><button data-quick="zoomout">Zoom −</button><button data-quick="zoomin">Zoom +</button><button data-quick="fit">Fit</button><button data-quick="fill">Fill</button><button class="danger" data-quick="delete">Delete</button><div class="ss2-quick-frames">${SHAPES.map(shape=>`<button data-quick-frame="${shape}" class="${shape===(o.shape||'none')?'active':''}">${shape==='none'?'No frame':shape}</button>`).join('')}</div>`
+ else q.innerHTML=`<strong>${o.type==='sticker'?'Sticker':'Text'}</strong><button data-quick="undo">↶ Undo</button><button data-quick="redo">Redo ↷</button><button data-quick="smaller">Smaller</button><button data-quick="larger">Larger</button><button data-quick="rotate">Rotate</button><button data-quick="duplicate">Duplicate</button><button class="danger" data-quick="delete">Delete</button>`;
  q.querySelectorAll('[data-quick]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quick));
  q.querySelectorAll('[data-quick-frame]').forEach(button=>button.onclick=()=>setFrames([obj()].filter(Boolean),button.dataset.quickFrame));
 }
 function quickAction(name){
  if(name==='undo')return undo();if(name==='redo')return redo();const o=obj();if(!o)return;
- if(name==='delete')return removeObject(o.id);if(name==='duplicate')return action('duplicate');if(name==='inside'){photoEditMode=!photoEditMode;renderStage();return}
+ if(name==='delete'){if(o.type==='photo'&&!confirm(`Remove Photo ${photoNumber(o)} from this page?`))return;return removeObject(o.id)}if(name==='duplicate')return action('duplicate');if(name==='inside'){photoEditMode=!photoEditMode;renderStage();return}
  snapshot();
  if(name==='smaller'){o.w=Math.max(40,o.w*.82);o.h=Math.max(40,o.h*.82)}
  if(name==='larger'){o.w=Math.min(850,o.w*1.18);o.h=Math.min(630,o.h*1.18)}
@@ -311,7 +329,7 @@ function quickAction(name){
 }
 function action(a){
  const o=obj();if(!o)return;if(a==='inside'){photoEditMode=!photoEditMode;renderStage();return}snapshot();
- if(a==='delete'){state.objects=state.objects.filter(x=>x.id!==o.id);multiSelected.delete(o.id);selected=null}
+ if(a==='delete'){if(o.type==='photo'&&!confirm(`Remove Photo ${photoNumber(o)} from this page?`)){history.pop();return}state.objects=state.objects.filter(x=>x.id!==o.id);multiSelected.delete(o.id);selected=null}
  if(a==='duplicate'){const n=clone(o);n.id=id();n.x+=24;n.y+=24;n.z=Math.max(0,...state.objects.map(x=>x.z))+1;state.objects.push(n);selected=n.id}
  if(a==='lock')o.locked=!o.locked;
  if(a==='forward')o.z=Math.max(0,...state.objects.map(x=>x.z))+1;
@@ -320,6 +338,7 @@ function action(a){
  const targetPhotos=editTargets().filter(x=>x.type==='photo');
  if(a==='fit')targetPhotos.forEach(x=>x.fit='contain');if(a==='fill')targetPhotos.forEach(x=>x.fit='cover');if(a==='flipx')targetPhotos.forEach(x=>x.flipX=(x.flipX||1)*-1);if(a==='flipy')targetPhotos.forEach(x=>x.flipY=(x.flipY||1)*-1);
  if(a==='centerphoto')targetPhotos.forEach(x=>{x.photoX=0;x.photoY=0});
+ if(a==='textnofill'&&o.type==='text')o.backgroundColor='transparent';
  if(a==='replace'){pendingShape=o.shape||'none';document.querySelector('#ss2-files').dataset.replace=o.id;document.querySelector('#ss2-files').click();return}
  renderStage();scheduleSave();
 }
@@ -331,7 +350,7 @@ function startGesture(e){
  snapshot();gesture={pointerId:e.pointerId,x:e.clientX,y:e.clientY,ox:o.x,oy:o.y,ow:o.w,oh:o.h,opx:o.photoX||0,opy:o.photoY||0,mode,o,el:this,lastX:e.clientX,lastY:e.clientY};
  this.onpointermove=moveGesture;this.onpointerup=endGesture;this.onpointercancel=endGesture;renderControls();renderLayers();
 }
-function moveGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;gesture.lastX=e.clientX;gesture.lastY=e.clientY;if(moveFrame)return;moveFrame=requestAnimationFrame(()=>{moveFrame=0;if(!gesture)return;const s=scale(),dx=(gesture.lastX-gesture.x)/s,dy=(gesture.lastY-gesture.y)/s,o=gesture.o;if(gesture.mode==='resize'){o.w=Math.max(40,Math.min(900-o.x,gesture.ow+dx));o.h=Math.max(40,Math.min(675-o.y,gesture.oh+dy));gesture.el.style.width=`${o.w}px`;gesture.el.style.height=`${o.h}px`;const sticker=gesture.el.querySelector('.ss2-text');if(o.type==='sticker'&&sticker)sticker.style.fontSize=`${Math.max(18,Math.min(o.w,o.h)*.72)}px`}else if(gesture.mode==='photo'){o.photoX=gesture.opx+dx;o.photoY=gesture.opy+dy;const img=gesture.el.querySelector('img');if(img)img.style.transform=`translate3d(${o.photoX}px,${o.photoY}px,0) scale(${o.photoScale||1})`}else{o.x=Math.max(-o.w+30,Math.min(870,gesture.ox+dx));o.y=Math.max(-o.h+30,Math.min(645,gesture.oy+dy));gesture.el.style.transform=`translate3d(${o.x}px,${o.y}px,0) rotate(${o.r}deg) scale(${o.flipX||1},${o.flipY||1})`}})}
+function moveGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;gesture.lastX=e.clientX;gesture.lastY=e.clientY;if(moveFrame)return;moveFrame=requestAnimationFrame(()=>{moveFrame=0;if(!gesture)return;const s=scale(),dx=(gesture.lastX-gesture.x)/s,dy=(gesture.lastY-gesture.y)/s,o=gesture.o;if(gesture.mode==='resize'){o.w=Math.max(40,Math.min(900-o.x,gesture.ow+dx));o.h=Math.max(40,Math.min(675-o.y,gesture.oh+dy));gesture.el.style.width=`${o.w}px`;gesture.el.style.height=`${o.h}px`;const sticker=gesture.el.querySelector('.ss2-text');if(o.type==='sticker'&&sticker)sticker.style.fontSize=`${Math.max(18,Math.min(o.w,o.h)*.72)}px`}else if(gesture.mode==='photo'){o.photoX=gesture.opx+dx;o.photoY=gesture.opy+dy;const img=gesture.el.querySelector('img');if(img)img.style.transform=`translate3d(${o.photoX}px,${o.photoY}px,0) scale(${o.photoScale||1})`}else{o.x=Math.max(0,Math.min(900-o.w,gesture.ox+dx));o.y=Math.max(0,Math.min(675-o.h,gesture.oy+dy));gesture.el.style.transform=`translate3d(${o.x}px,${o.y}px,0) rotate(${o.r}deg) scale(${o.flipX||1},${o.flipY||1})`}})}
 function endGesture(e){if(!gesture||e.pointerId!==gesture.pointerId)return;if(moveFrame){cancelAnimationFrame(moveFrame);moveFrame=0}const el=gesture.el;gesture=null;el.onpointermove=null;el.onpointerup=null;el.onpointercancel=null;renderStage();scheduleSave()}
 function scale(){return Number(document.querySelector('#ss2-stage')?.dataset.scale||1)}
 function fit(){
@@ -356,18 +375,26 @@ function renderDraftList(){
 }
 function showDraftLibrary(){closePanels();renderDraftList();const pages=document.querySelector('#ss2-pages');if(pages)pages.hidden=false}
 function hideDraftLibrary(){const pages=document.querySelector('#ss2-pages');if(pages)pages.hidden=true}
-async function closePage(){const ok=await persist({force:true});if(!ok){notice('Page could not be closed until it is saved');return}showDraftLibrary();notice('Page closed and saved as a draft')}
-async function newPage(){await persist({force:true});state=blank();resetEditorState();await persist({force:true});render();notice('New scrapbook page opened')}
-async function openDraft(pageId){if(pageId===state.id){hideDraftLibrary();return}await persist({force:true});state=await load(pageId);resetEditorState();render();notice('Saved page opened')}
+function exitToHub(){renderController?.abort();renderController=null;document.querySelector('.ss2')?.remove();document.body.classList.remove('ss2-open');bridge()?.refreshScrapbook?.();if(!location.hash.startsWith('#scrapbook'))location.hash='#scrapbook'}
+async function closePage(){if(state.status!=='final'){const ok=await persist({force:true});if(!ok){notice('Page could not be closed until it is saved');return}}exitToHub()}
+async function newPage(){if(state&&state.status!=='final')await persist({force:true});state=blank();resetEditorState();await persist({force:true});render();notice(`New page started by ${state.authorName}`)}
+async function openDraft(pageId){if(pageId===state.id){hideDraftLibrary();return}state=await load(pageId);resetEditorState();render();notice(state.status==='final'?'Finalized page opened in view mode':'Draft opened for editing')}
 function setFrames(targets,shape){if(!targets.length)return;snapshot();targets.forEach(o=>{o.shape=shape;if(shape==='none'){o.borderWidth=0;o.shadow=0;o.glow=0}else if(!Number(o.borderWidth)){o.borderWidth=6}});renderStage();scheduleSave()}
 function applyFrame(shape){
  const targets=frameTargets();if(!targets.length){alert('Select a photo, check photos in Edit, or turn on “Add frame to every photo.”');return}
  setFrames(targets,shape);closePanels();
 }
+function applyThemeLayout(){
+ const rows=photos();if(!rows.length){notice('Add photos before arranging the page');return}snapshot();
+ const layouts={1:[[180,115,540,405,0]],2:[[70,120,350,390,-3],[480,120,350,390,3]],3:[[55,70,430,350,-2],[535,80,300,235,3],[500,365,340,250,-3]],4:[[55,65,350,250,-3],[495,65,350,250,2],[55,360,350,250,2],[495,360,350,250,-2]]};
+ const spots=layouts[Math.min(4,rows.length)]||layouts[4],themeShapes={'Wedding Romance':'vintage','Pet Memories':'oval','Happy Hour':'polaroid','Camping Under the Stars':'vintage','Christmas 🎄':'polaroid','Baby Keepsake':'oval'};
+ rows.forEach((photo,i)=>{const [x,y,w,h,r]=spots[i%spots.length];Object.assign(photo,{x,y,w,h,r,z:i+2,shape:themeShapes[state.theme]||'none',borderWidth:8,border:'#fffaf2',shadow:18,glow:0,fit:'cover'})});
+ renderStage();scheduleSave();closePanels();notice('Professional theme layout applied');
+}
 let noticeTimer=0;
 function notice(text){const el=document.querySelector('#ss2-notice');if(!el)return;clearTimeout(noticeTimer);el.textContent=text;el.classList.add('show');noticeTimer=setTimeout(()=>el.classList.remove('show'),2400)}
-async function saveDraft(){state.status='draft';delete state.finalizedAt;const ok=await persist({force:true});if(ok){setStatus('Draft saved');notice('Draft and photos saved on this device')}else notice('Draft could not be saved — check device storage')}
-async function finalizePage(){if(!String(state.title||'').trim()){document.querySelector('#ss2-title')?.focus();notice('Name this scrapbook before finalizing');return}state.status='final';state.finalizedAt=Date.now();const ok=await persist({force:true});if(ok){setStatus('Finalized');document.querySelector('#ss2-finalize').textContent='Finalized ✓';document.querySelector('#ss2-mfinalize').textContent='Final ✓';notice('Page finalized and saved')}else notice('Page could not be finalized')}
+async function saveDraft(){state.status='draft';state.title=String(state.title||'').trim()||defaultTitle(state.authorName);delete state.finalizedAt;const ok=await persist({force:true});if(ok){setStatus('Draft saved');notice(`Saved in My Drafts · by ${state.authorName}`)}else notice('Draft could not be saved — check storage and connection')}
+async function finalizePage(){state.title=String(state.title||'').trim()||defaultTitle(state.authorName);state.status='final';state.finalizedAt=Date.now();const ok=await persist({force:true});if(ok){resetEditorState();render();notice(`Finalized · by ${state.authorName}`)}else{state.status='draft';notice('Page could not be finalized')}}
 function bind(){
  renderController?.abort();renderController=new AbortController();const {signal}=renderController;
  const on=(target,type,fn,options={})=>target?.addEventListener(type,fn,{...options,signal});
@@ -381,11 +408,14 @@ function bind(){
  on(document.querySelector('#ss2-finalize'),'click',finalizePage);on(document.querySelector('#ss2-mfinalize'),'click',finalizePage);
  on(document.querySelector('#ss2-photo'),'click',()=>{pendingShape='none';document.querySelector('#ss2-files').click()});
  on(document.querySelector('#ss2-files'),'change',handleFiles);
- on(document.querySelector('#ss2-text'),'click',addText);on(document.querySelector('#ss2-emoji'),'click',()=>{const text=prompt('Enter emoji','😊');if(text)addSticker(text)});
+ on(document.querySelector('#ss2-text'),'click',()=>addTextPreset('plain'));on(document.querySelector('#ss2-emoji'),'click',()=>{const text=prompt('Enter emoji','😊');if(text)addSticker(text)});
+ on(document.querySelector('#ss2-add-media'),'click',addMediaPhotos);
+ document.querySelectorAll('[data-text-preset]').forEach(button=>on(button,'click',()=>addTextPreset(button.dataset.textPreset)));
  on(document.querySelector('#ss2-frame-all'),'change',e=>{frameAll=e.target.checked});
  document.querySelectorAll('[data-frame]').forEach(b=>on(b,'click',()=>applyFrame(b.dataset.frame)));
  document.querySelectorAll('[data-sticker]').forEach(b=>on(b,'click',()=>addSticker(b.dataset.sticker)));
  on(document.querySelector('#ss2-theme'),'change',e=>{snapshot();state.theme=e.target.value;renderStage();scheduleSave();closePanels()});
+ on(document.querySelector('#ss2-theme-layout'),'click',applyThemeLayout);
  document.querySelectorAll('[data-panel]').forEach(b=>on(b,'click',()=>{const panel=document.querySelector(b.dataset.panel),wasOpen=panel?.classList.contains('open');closePanels();if(panel&&!wasOpen)panel.classList.add('open')}));
  document.querySelectorAll('.ss2-panel-close').forEach(b=>on(b,'click',closePanels));
  on(document.querySelector('#ss2-export'),'click',()=>{closePanels();document.querySelector('#ss2-export-menu').hidden=false});
@@ -395,8 +425,14 @@ function bind(){
 async function handleFiles(e){
  const input=e.currentTarget;const files=[...input.files];const replaceId=input.dataset.replace||'';delete input.dataset.replace;input.value='';
  const shape=pendingShape||'none';pendingShape=null;if(!files.length)return;
- if(replaceId){const target=state.objects.find(x=>x.id===replaceId);if(target){snapshot();target.src=await compressImage(files[0]);delete target.assetKey;target.name=files[0].name||target.name||'';target.shape=shape;selected=target.id;renderStage();scheduleSave()}return}
- for(const file of files)await addPhoto(file,shape);
+ let uploaded=[];
+ try{uploaded=await bridge()?.uploadPhotos?.(files)||[]}catch(error){console.warn('Media upload fallback',error);notice('Cloud upload unavailable · keeping photo in this draft')}
+ if(replaceId){
+  const target=state.objects.find(x=>x.id===replaceId);if(!target)return;
+  snapshot();target.src=uploaded[0]?.url||await compressImage(files[0]);delete target.assetKey;target.name=uploaded[0]?.name||files[0].name||target.name||'';target.shape=shape;selected=target.id;renderStage();scheduleSave();return;
+ }
+ if(uploaded.length)uploaded.forEach((item,i)=>addPhotoUrl(item.url,item.name||files[i]?.name||'Photo',i,shape));
+ else for(const file of files)await addPhoto(file,shape);
 }
 function buildExportStage(){
  const source=document.querySelector('#ss2-stage'),clone=source.cloneNode(true),host=document.createElement('div');
@@ -415,12 +451,13 @@ async function exportPage(format){
   const canvas=await html2canvas(built.clone,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:900,height:675,windowWidth:900,windowHeight:675,scrollX:0,scrollY:0});
   if(canvas.width!==1800||canvas.height!==1350)throw new Error(`Unexpected export size ${canvas.width}×${canvas.height}`);
   const jpeg=canvas.toDataURL('image/jpeg',.94),name=safeFilename();
-  if(format==='jpeg'){const a=document.createElement('a');a.href=jpeg;a.download=`${name}-10.3.6.jpg`;a.click();notice('Full-page JPEG saved')}
-  else{const {jsPDF}=window.jspdf||{};if(!jsPDF)throw new Error('PDF library is unavailable');const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675],hotfixes:['px_scaling']});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save(`${name}-10.3.6.pdf`);notice('Full-page PDF saved')}
+  if(format==='jpeg'){const a=document.createElement('a');a.href=jpeg;a.download=`${name}-10.3.7.jpg`;a.click();notice('Full-page JPEG saved')}
+  else{const {jsPDF}=window.jspdf||{};if(!jsPDF)throw new Error('PDF library is unavailable');const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675],hotfixes:['px_scaling']});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save(`${name}-10.3.7.pdf`);notice('Full-page PDF saved')}
  }catch(e){console.warn('Scrapbook export',e);notice('Export failed — please try again')}finally{host?.remove();editor?.classList.remove('exporting');setStatus('Saved')}
 }
-function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook'}
-async function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=await load();resetEditorState();render()}
+function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook-editor'}
+async function open(){if(document.querySelector('.ss2'))return;closing=false;state=await load();resetEditorState();render()}
+async function openPage(pageId,{ownerUid=''}={}){window.__ss2OwnerUid=ownerUid;if(document.querySelector('.ss2'))document.querySelector('.ss2').remove();closing=false;state=await load(pageId);resetEditorState();render()}
 async function close(){if(closing)return;closing=true;await persist({force:true});renderController?.abort();renderController=null;document.querySelector('.ss2')?.remove();document.body.classList.remove('ss2-open');if(location.hash.startsWith('#scrapbook'))location.hash='#home';closing=false}
 window.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
 window.visualViewport?.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
@@ -429,5 +466,5 @@ window.addEventListener('hashchange',()=>{if(shouldOpen())open();else if(documen
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&state)persist({force:true})});
 window.addEventListener('pagehide',()=>{if(state)persist({force:true})});
 if(shouldOpen())setTimeout(open,50);
-window.ScrapbookStudio2={open,version:V,save:()=>persist({force:true})};
+window.ScrapbookStudio2={open,newPage,openPage,version:V,save:()=>persist({force:true})};
 })();
