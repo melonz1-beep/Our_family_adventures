@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='10.3.3';
+const VERSION='10.3.4';
 const FCM_PUBLIC_VAPID_KEY='BDCdG1CygJGFfQ3SBnzgxPIWHqBQqH0fcZbHpZH4nXwM0Lc4H-b9ql1W4tiyFKXcTIaaD8nCacG6yxgdwN7PSS8';
 const SECURITY_RULES_VERSION='10.1.1-admin-controls';
 const DEFAULT_FAMILY='default-family';

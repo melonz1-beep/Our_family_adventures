@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Our Family Adventures 10.3.3</title>
+<title>Our Family Adventures 10.3.4</title>
 <meta name="theme-color" content="#d9a39a">
 <meta name="description" content="Private family trip planner with Firebase sync, maps, weather, media, Scrapbook Studio 2.0, meals, groceries, packing, travel links, invitations, and admin tools.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Adventures">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="./manifest.json?v=10.3.3">
+<link rel="manifest" href="./manifest.json?v=10.3.4">
 <link rel="icon" href="./icons/favicon.png">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
-<link rel="stylesheet" href="./style.css?v=10.3.3">
-<link rel="stylesheet" href="./scrapbook-studio-2.css?v=10.3.3">
+<link rel="stylesheet" href="./style.css?v=10.3.4">
+<link rel="stylesheet" href="./scrapbook-studio-2.css?v=10.3.4">
 </head>
 <body>
 <div id="toast"></div>
@@ -25,11 +25,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-<script src="./firebase-config.js?v=10.3.3"></script>
+<script src="./firebase-config.js?v=10.3.4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="./app.js?v=10.3.3"></script>
-<script src="./scrapbook-studio-2.js?v=10.3.3"></script>
+<script src="./app.js?v=10.3.4"></script>
+<script src="./scrapbook-studio-2.js?v=10.3.4"></script>
 <script>
 (function(){
   function wire(){
@@ -41,9 +41,9 @@
     if(install) install.onclick=function(){ if(window.app&&app.install) app.install(); };
     var status=document.getElementById('sync');
     if(window.app){
-      if(status && /Starting|Loading problem|Loading app/.test(status.textContent)) status.textContent='App ready · Version 10.3.3';
+      if(status && /Starting|Loading problem|Loading app/.test(status.textContent)) status.textContent='App ready · Version 10.3.4';
     } else if(status) {
-      status.textContent='App could not start. Please redeploy all Version 10.3.3 files.';
+      status.textContent='App could not start. Please redeploy all Version 10.3.4 files.';
     }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();

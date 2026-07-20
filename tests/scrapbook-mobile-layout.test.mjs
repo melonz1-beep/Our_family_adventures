@@ -29,8 +29,37 @@ test('fit is clamped to the visible viewport', () => {
 test('frames style the selected photo instead of opening the file picker', () => {
   assert.match(studio, /\[data-frame\][\s\S]*applyFrame\(b\.dataset\.frame\)/);
   assert.doesNotMatch(studio, /\[data-frame\][^\n]*ss2-files[^\n]*click/);
-  assert.match(studio, /Photo \$\{photos\.indexOf\(o\)\+1\}/);
+  assert.match(studio, /function photoNumber\(o\)/);
   assert.match(studio, /pendingShape='none'/);
+});
+
+test('objects resize directly and photos can move inside their frames', () => {
+  assert.match(studio, /ss2-resize-handle/);
+  assert.match(studio, /mode=e\.target\.closest\('\.ss2-resize-handle'\)\?'resize'/);
+  assert.match(studio, /photoEditMode&&o\.type==='photo'\?'photo'/);
+  assert.match(studio, /data-photo-prop="photoScale"/);
+  assert.match(studio, /Photo left \/ right/);
+  assert.doesNotMatch(studio, /'Edit sticker'/);
+});
+
+test('mobile add and edit tools live in the top toolbar', () => {
+  assert.match(studio, /class="ss2-mobiletool" data-panel="\.ss2-left"/);
+  assert.match(studio, /class="ss2-mobiletool" data-panel="\.ss2-right"/);
+  assert.doesNotMatch(studio, /ss2-mobilebar/);
+  assert.match(css, /grid-template-rows:auto auto/);
+});
+
+test('photos have numbered thumbnails, checkboxes, and bulk editing', () => {
+  assert.match(studio, /class="ss2-photo-number"/);
+  assert.match(studio, /data-multi=/);
+  assert.match(studio, /Edit checked photos together/);
+  assert.match(studio, /Add frame to every photo/);
+});
+
+test('themes render complete illustrated scrapbook layouts', () => {
+  assert.match(studio, /function themeArt\(name\)/);
+  assert.match(studio, /backgroundImage=themeArt\(state\.theme\)/);
+  assert.match(studio, /<svg xmlns='http:\/\/www\.w3\.org\/2000\/svg'/);
 });
 
 test('only one mobile panel can remain open', () => {
