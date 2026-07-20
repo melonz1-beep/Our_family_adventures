@@ -196,8 +196,9 @@ test('holiday artwork uses recognizable decorated trees and carved pumpkins', ()
   assert.match(studio, /fill='#211922'/);
 });
 
-test('all release entry points use version 10.3.8', () => {
-  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.8/);
+test('all release entry points use version 10.3.9', () => {
+  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.9/);
+  for (const source of [app, studio, worker, index]) assert.doesNotMatch(source, /10\.3\.8/);
   for (const source of [app, studio, worker, index]) assert.doesNotMatch(source, /10\.3\.6/);
 });
 
@@ -221,7 +222,41 @@ test('account creation is invitation-only and authorization is issued server-sid
   assert.match(app, /httpsCallable\('authorizeFamilyMember'\)/);
   assert.match(functions, /exports\.authorizeFamilyMember = onCall/);
   assert.match(functions, /setCustomUserClaims/);
-  assert.match(functions, /approvedBy: 'family-invitation'/);
+  assert.match(functions, /approvedBy: 'verified-family-invitation'/);
+});
+
+test('new memberships require verified email and cannot self-bootstrap an administrator', () => {
+  assert.match(functions, /email_verified !== true/);
+  assert.match(functions, /inviteRef\.transaction/);
+  assert.doesNotMatch(functions, /secure-admin-bootstrap/);
+  assert.doesNotMatch(databaseRules, /inviteCode.*pendingInvites/);
+  assert.doesNotMatch(databaseRules, /publicData.*adminEmail.*\.val/s);
+});
+
+test('invitation secrets and admin PIN are not written to shared public data', () => {
+  assert.match(app, /delete settings\.adminCode/);
+  assert.doesNotMatch(app, /const out=\{version:VERSION,people:objById\(arr\('people'\)\),profiles:objById\(arr\('profiles'\)\),invites:/);
+  assert.match(functions, /'publicData\/invites': null/);
+  assert.match(functions, /emailHint: maskedEmail/);
+});
+
+test('trip ownership is immutable and notification creation is server-only', () => {
+  assert.match(databaseRules, /newData\.child\('trip\/ownerUid'\)\.val\(\) == data\.child\('trip\/ownerUid'\)\.val\(\)/);
+  assert.match(databaseRules, /"notificationQueue"[\s\S]*?"\.write": false/);
+  assert.match(functions, /exports\.queueFamilyNotification = onCall/);
+  assert.match(functions, /NOTIFICATIONS_PER_WINDOW/);
+});
+
+test('role changes update protected membership and revoke refresh tokens', () => {
+  assert.match(functions, /exports\.updateFamilyMemberRole = onCall/);
+  assert.match(functions, /revokeRefreshTokens\(targetUid\)/);
+  assert.match(app, /httpsCallable\('updateFamilyMemberRole'\)/);
+});
+
+test('signed-out sessions cannot render or retain cached family data', () => {
+  assert.match(app, /protectedFirebase&&!familyAuthorized/);
+  assert.match(app, /function clearSensitiveDeviceCache\(\)/);
+  assert.match(app, /startsWith\('ofa-scrapbook-studio-2'\)/);
 });
 
 test('public source contains no administrator email address', () => {

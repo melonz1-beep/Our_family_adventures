@@ -9,7 +9,7 @@
  * failures from stopping registration on GitHub Pages.
  */
 
-const APP_VERSION = '10.3.8';
+const APP_VERSION = '10.3.9';
 const APP_ROOT = new URL('./', self.location.href);
 const DEFAULT_URL = new URL(`index.html?v=${APP_VERSION}#notifications`, APP_ROOT).href;
 const ICON_URL = new URL('icons/icon-192.png', APP_ROOT).href;
