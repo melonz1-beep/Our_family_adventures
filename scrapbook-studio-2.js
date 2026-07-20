@@ -1,7 +1,9 @@
 (()=>{'use strict';
-const V='10.3.4';
+const V='10.3.5';
 const KEY='ofa-scrapbook-studio-2';
 const RECOVERY_KEY=`${KEY}-recovery`;
+const ASSET_DB='ofa-scrapbook-assets';
+const ASSET_STORE='photos';
 const HISTORY_LIMIT=35;
 const SAVE_DELAY=1200;
 const MAX_IMAGE_EDGE=2400;
@@ -31,7 +33,7 @@ const THEME_META={
  'Halloween 🎃':['#20142f','#ef8c35','#8c6bb1','halloween'],'Easter 🐰':['#fff5ec','#d89fbe','#8fc9b3','baby'],
  'Patriotic 🇺🇸':['#f8f5ee','#b5283b','#334c83','patriotic']
 };
-function themeArt(name){
+function themeArtLegacy(name){
  const [paper,accent,second,kind]=THEME_META[name]||THEME_META['Sea Glass'];
  const scenes={
   sea:`<path d='M0 510 Q110 450 220 510 T440 510 T660 510 T900 510 V675 H0Z' fill='${second}' opacity='.5'/><path d='M0 555 Q100 515 200 555 T400 555 T600 555 T900 555' fill='none' stroke='${accent}' stroke-width='14' opacity='.65'/><g fill='none' stroke='${accent}' stroke-width='6' opacity='.75'><path d='M72 92 q42-55 84 0 q-42 48-84 0Z'/><path d='M760 570 q55-68 110 0 q-55 58-110 0Z'/></g>`,
@@ -56,6 +58,50 @@ function themeArt(name){
  const svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 675'><defs><linearGradient id='paper' x1='0' y1='0' x2='1' y2='1'><stop stop-color='${paper}'/><stop offset='1' stop-color='${second}' stop-opacity='.3'/></linearGradient><pattern id='grain' width='18' height='18' patternUnits='userSpaceOnUse'><circle cx='3' cy='4' r='1.2' fill='${accent}' opacity='.12'/></pattern></defs><rect width='900' height='675' fill='url(#paper)'/><rect width='900' height='675' fill='url(#grain)'/>${scene}<rect x='18' y='18' width='864' height='639' rx='24' fill='none' stroke='#fff' stroke-width='5' opacity='.65'/><rect x='30' y='30' width='840' height='615' rx='18' fill='none' stroke='${accent}' stroke-width='2' opacity='.45'/></svg>`;
  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
+const PRO_THEME_META={
+ 'Sea Glass':['#e9e5dc','#4b817d','#b79b6a','#f8f6f0','sea'],'Mountain Escape':['#d8d1c3','#40594a','#976f4c','#f1ede4','mountain'],
+ 'Lighthouse':['#e8e2d6','#244d62','#b5473e','#f7f3ea','lighthouse'],'Camping Under the Stars':['#121c2c','#b98a49','#314636','#e2d3b6','camp'],
+ 'Happy Hour':['#1d3130','#b88a47','#7a3042','#efe0ca','happyhour'],'Celebration':['#eee8df','#a85c70','#3f6971','#faf8f2','celebration'],
+ 'Wedding Romance':['#eee9df','#a98b58','#7d705f','#fffdf8','wedding'],'Pet Memories':['#d7c3a5','#5d4939','#71806b','#f4eadb','pet'],
+ 'Baby Keepsake':['#eee6d8','#829aaa','#c89ca1','#fbf7ef','baby'],'Autumn Gathering':['#d7bea0','#7e3f2d','#a87438','#f0e4d2','autumn'],
+ 'Sunset Glow':['#2f2940','#d86f45','#e5ad5a','#f6d1a3','sunset'],'Winter Wonderland':['#263d55','#8eb1c2','#c9d6de','#f1f5f5','winter'],
+ 'Chalkboard Memories':['#17201f','#e4d7b9','#b9806a','#f0ead9','chalk'],'Vintage Scroll':['#cdbb99','#6d4b36','#9b7d53','#eee1c8','vintage'],
+ 'Watercolor Wash':['#e8e2dd','#7e9da1','#b67a89','#faf7f2','watercolor'],'Warm Sand':['#dfcfb5','#4c8391','#b8884f','#f5ead7','sand'],
+ 'Soft Paisley':['#ded6df','#725f7e','#a87c82','#f7f1f3','paisley'],'Christmas 🎄':['#18392f','#b7a05b','#8d2935','#eee7d6','christmas'],
+ 'Halloween 🎃':['#201b27','#b65f2d','#725978','#e2d0b4','halloween'],'Easter 🐰':['#eee5d8','#a07d9a','#789b8c','#faf5eb','easter'],
+ 'Patriotic 🇺🇸':['#e6dfd2','#883542','#354c6b','#faf7ef','patriotic']
+};
+function themeArt(name){
+ const [paper,accent,second,mat,kind]=PRO_THEME_META[name]||PRO_THEME_META['Sea Glass'];
+ const scenes={
+  sea:`<path d='M0 570c120-38 225 30 350-4s230 25 355-8 195 4 195 4v113H0Z' fill='${accent}' opacity='.35'/><g fill='none' stroke='${accent}' stroke-width='5'><path d='M74 122c35-55 96-43 112 5-33-16-75-5-112-5Z'/><path d='M735 548c30-54 92-48 111-2-38-13-72-8-111 2Z'/></g><g fill='${second}' opacity='.55'><circle cx='116' cy='155' r='7'/><circle cx='142' cy='146' r='5'/><circle cx='786' cy='575' r='8'/></g>`,
+  mountain:`<path d='M0 590 118 455l78 75 126-176 122 147 118-210 144 188 76-78 138 166v108H0Z' fill='${accent}' opacity='.48'/><path d='m487 394 75-103 50 66-28-12-22 31-24-32Z' fill='${mat}' opacity='.9'/><rect x='48' y='70' width='190' height='55' rx='4' fill='${second}' opacity='.35'/><path d='M65 98h155' stroke='${mat}' stroke-width='3' stroke-dasharray='7 7'/>`,
+  lighthouse:`<path d='M0 570c160-45 290 40 445-2s290 34 455-6v113H0Z' fill='${accent}' opacity='.4'/><g transform='translate(748 180)' fill='none' stroke='${second}' stroke-width='8'><path d='m25 50 55 0 26 310H0Z' fill='${mat}'/><path d='M4 245h98M10 176h86M18 106h70'/><path d='M15 50 30 9h44l20 41Z'/><rect x='24' y='52' width='62' height='48' fill='${accent}'/></g><path d='M765 210 590 145M840 210 900 170' stroke='${second}' stroke-width='12' opacity='.28'/>`,
+  camp:`<g fill='${mat}' opacity='.8'><circle cx='110' cy='92' r='3'/><circle cx='230' cy='140' r='4'/><circle cx='410' cy='75' r='3'/><circle cx='615' cy='122' r='4'/><circle cx='790' cy='80' r='3'/></g><path d='M0 585 155 420l110 125 120-170 140 162 142-195 145 198 88-112v247H0Z' fill='${accent}' opacity='.72'/><path d='M0 605h900v70H0Z' fill='${second}'/><path d='M0 620h900M0 650h900M90 605v70m90-70v70m90-70v70m90-70v70m90-70v70m90-70v70m90-70v70m90-70v70m90-70v70' stroke='${mat}' opacity='.35'/><g transform='translate(650 440)' fill='none' stroke='${second}' stroke-width='7'><circle cx='55' cy='55' r='48'/><path d='m55 12 12 43-12 43-12-43Z'/></g>`,
+  happyhour:`<path d='M0 0h900v92H0Z' fill='${second}' opacity='.9'/><path d='M0 620h900v55H0Z' fill='${accent}' opacity='.9'/><g fill='none' stroke='${mat}' stroke-width='7' opacity='.82'><path d='M85 112h100l-18 90c-8 38-56 38-64 0Z M135 238v70M92 309h86'/><path d='M690 115h120l-18 78c-8 32-21 47-42 47s-34-15-42-47Z M750 240v68M705 309h90'/><path d='M705 148h90l-45 51Z'/><path d='M75 520h95v-116H75Z M170 430h20v68h-20'/></g><g fill='${second}' opacity='.65'><circle cx='240' cy='128' r='8'/><circle cx='270' cy='105' r='5'/><circle cx='635' cy='175' r='9'/></g>`,
+  celebration:`<path d='M0 74Q220 160 450 74T900 74' fill='none' stroke='${accent}' stroke-width='7'/><g fill='${second}' opacity='.75'><path d='m78 99 54 86 44-65Z'/><path d='m260 123 55 87 46-67Z'/><path d='m460 110 55 88 46-68Z'/><path d='m665 124 54 86 45-68Z'/></g><g fill='none' stroke='${accent}' stroke-width='5' opacity='.55'><circle cx='120' cy='548' r='57'/><circle cx='780' cy='530' r='70'/></g><path d='M45 610h810' stroke='${second}' stroke-width='18' stroke-dasharray='4 14'/>`,
+  wedding:`<path d='M0 0h900v82H0Z' fill='${mat}'/><path d='M0 42h900' stroke='${accent}' stroke-width='2'/><path d='M0 55h900' stroke='${accent}' stroke-width='2' stroke-dasharray='3 8'/><g fill='none' stroke='${accent}' stroke-width='5' opacity='.72'><path d='M35 620c35-115 98-175 205-192M72 574c32-7 58-25 72-54M113 530c-2-35 9-61 34-82M865 55c-40 100-105 151-218 165M820 95c-34 2-62 17-82 46M766 137c-5 32-22 57-49 75'/><circle cx='449' cy='600' r='34'/><circle cx='482' cy='600' r='34'/></g><g fill='${second}' opacity='.22'><ellipse cx='102' cy='552' rx='36' ry='13' transform='rotate(-42 102 552)'/><ellipse cx='160' cy='492' rx='39' ry='14' transform='rotate(-55 160 492)'/><ellipse cx='788' cy='112' rx='38' ry='13' transform='rotate(-42 788 112)'/></g>`,
+  pet:`<path d='M0 600h900v75H0Z' fill='${second}' opacity='.75'/><path d='M0 615h900M0 650h900M100 600v75m100-75v75m100-75v75m100-75v75m100-75v75m100-75v75m100-75v75m100-75v75' stroke='${mat}' opacity='.35'/><g fill='${accent}' opacity='.42'><circle cx='95' cy='115' r='25'/><circle cx='60' cy='78' r='12'/><circle cx='92' cy='64' r='13'/><circle cx='126' cy='78' r='12'/><circle cx='793' cy='510' r='29'/><circle cx='754' cy='467' r='14'/><circle cx='792' cy='450' r='15'/><circle cx='832' cy='467' r='14'/></g><g transform='translate(680 78)' fill='${mat}' stroke='${accent}' stroke-width='5'><path d='M0 35C0 5 38 2 58 20 78 2 116 5 116 35s-38 33-58 15C38 68 0 65 0 35Z'/><path d='M20 35h76'/></g>`,
+  baby:`<path d='M0 0h900v92H0Z' fill='${second}' opacity='.28'/><path d='M0 0h900v92' fill='none' stroke='${accent}' stroke-width='4' stroke-dasharray='12 12'/><path d='M0 604Q75 558 150 604t150 0t150 0t150 0t150 0t150 0v71H0Z' fill='${accent}' opacity='.26'/><g fill='none' stroke='${second}' stroke-width='5' opacity='.72'><path d='M98 150a58 58 0 1 0 65-90 72 72 0 1 1-65 90Z'/><path d='m735 90 10 24 27 2-21 17 7 26-23-14-22 14 6-26-21-17 27-2Z'/><path d='M690 560h130M715 540h80'/></g><g fill='${mat}' stroke='${accent}' stroke-width='3'><rect x='65' y='520' width='190' height='70' rx='5' transform='rotate(-3 160 555)'/><circle cx='230' cy='548' r='8'/></g>`,
+  autumn:`<path d='M0 612h900v63H0Z' fill='${accent}' opacity='.75'/><g fill='none' stroke='${second}' stroke-width='10'><path d='M38 40c105 98 151 205 168 337M860 638c-106-89-160-189-186-323'/></g><g fill='${accent}' opacity='.75'><ellipse cx='105' cy='114' rx='34' ry='15' transform='rotate(35 105 114)'/><ellipse cx='158' cy='202' rx='38' ry='17' transform='rotate(-18 158 202)'/><ellipse cx='718' cy='402' rx='41' ry='18' transform='rotate(31 718 402)'/><ellipse cx='786' cy='516' rx='37' ry='16' transform='rotate(-28 786 516)'/></g><path d='M275 72h350' stroke='${second}' stroke-width='5' stroke-dasharray='16 9'/>`,
+  sunset:`<defs><linearGradient id='sunsetSky' x1='0' y1='0' x2='0' y2='1'><stop stop-color='#302944'/><stop offset='.34' stop-color='#7f4058'/><stop offset='.68' stop-color='#d66e48'/><stop offset='1' stop-color='#edb45e'/></linearGradient></defs><rect width='900' height='675' fill='url(#sunsetSky)'/><circle cx='675' cy='435' r='118' fill='#f5c96d' opacity='.9'/><path d='M0 530c165-30 290 27 445-4s302 22 455-6v155H0Z' fill='#292735' opacity='.78'/><path d='M0 555c145-20 284 24 430-3s305 20 470-5' fill='none' stroke='#f2c57c' stroke-width='8' opacity='.5'/><rect x='34' y='34' width='832' height='607' fill='none' stroke='#f3d5aa' stroke-width='4' stroke-dasharray='18 10' opacity='.65'/>`,
+  winter:`<path d='M0 0h900v675H0Z' fill='#263d55'/><path d='M0 585Q120 520 240 580t240 0t240 0t180-25v120H0Z' fill='${mat}' opacity='.92'/><path d='M0 0h900v70H0Z' fill='${accent}' opacity='.42'/><g fill='none' stroke='${mat}' stroke-width='5' opacity='.78'><path d='m105 110v92m-40-69 80 46m0-46-80 46'/><path d='m770 126v115m-50-86 100 57m0-57-100 57'/></g><g fill='${accent}' opacity='.62'><path d='m230 595 65-168 65 168Z'/><path d='m550 603 85-225 85 225Z'/></g><rect x='30' y='30' width='840' height='615' rx='8' fill='none' stroke='${mat}' stroke-width='3' stroke-dasharray='5 12'/>`,
+  chalk:`<rect width='900' height='675' fill='#17201f'/><path d='M0 0h900v675H0Z' fill='url(#grain)' opacity='.65'/><g opacity='.12' stroke='${mat}' stroke-width='18'><path d='M60 115q220-80 420 10t360-15M40 540q230-65 430 20t390-25'/></g><rect x='32' y='32' width='836' height='611' rx='5' fill='none' stroke='${mat}' stroke-width='5' stroke-dasharray='18 10'/><g fill='none' stroke='${mat}' stroke-width='6' opacity='.82'><path d='M65 145c55-58 108-58 162 0M675 535c52-63 106-63 160 0'/><path d='m82 105 18 17 31-38M770 570l18 17 30-38'/></g><g transform='translate(50 525) rotate(-3)' filter='url(#shadow)'><rect width='255' height='82' rx='4' fill='${second}'/><path d='M18 24h215M18 45h165' stroke='${paper}' stroke-width='4' opacity='.45'/></g>`,
+  vintage:`<rect width='900' height='675' fill='${paper}'/><rect x='28' y='28' width='844' height='619' fill='none' stroke='${accent}' stroke-width='7'/><rect x='43' y='43' width='814' height='589' fill='none' stroke='${second}' stroke-width='2'/><g fill='none' stroke='${accent}' stroke-width='7'><path d='M42 180Q42 42 180 42M720 42Q858 42 858 180M42 495Q42 633 180 633M720 633Q858 633 858 495'/></g><path d='M0 585h900v35H0Z' fill='${second}' opacity='.3'/><path d='M0 594h900' stroke='${accent}' stroke-width='2' stroke-dasharray='12 8'/>`,
+  watercolor:`<g opacity='.28'><ellipse cx='115' cy='120' rx='190' ry='115' fill='${accent}'/><ellipse cx='790' cy='165' rx='185' ry='145' fill='${second}'/><ellipse cx='515' cy='590' rx='310' ry='105' fill='#c99c62'/><path d='M25 402Q240 320 450 405t420-20' fill='none' stroke='${second}' stroke-width='46' stroke-linecap='round'/></g><path d='M35 70h285M580 600h280' stroke='${accent}' stroke-width='4' stroke-dasharray='16 9'/><rect x='25' y='25' width='850' height='625' rx='12' fill='none' stroke='${second}' stroke-width='3' opacity='.55'/>`,
+  sand:`<path d='M0 560c135-52 268 35 408-3s296 28 492-6v124H0Z' fill='${second}' opacity='.45'/><path d='M0 590c150-35 285 28 430-4s300 25 470-4' fill='none' stroke='${accent}' stroke-width='10' opacity='.55'/><g fill='none' stroke='${accent}' stroke-width='5' opacity='.65'><path d='M74 95q50-58 100 0-50 48-100 0Z'/><path d='M730 520q62-70 124 0-62 58-124 0Z'/></g><rect x='55' y='55' width='210' height='62' transform='rotate(-2 160 86)' fill='${mat}' stroke='${second}' stroke-width='3'/>`,
+  paisley:`<path d='M0 0h900v75H0Z' fill='${accent}' opacity='.22'/><path d='M0 610h900v65H0Z' fill='${second}' opacity='.24'/><g fill='none' stroke='${accent}' stroke-width='9' opacity='.52'><path d='M86 220c125-165 220 48 94 126-85 48-135-37-94-126Z'/><path d='M650 442c145-180 242 60 100 139-98 48-147-49-100-139Z'/></g><g fill='${second}' opacity='.32'><circle cx='147' cy='273' r='24'/><circle cx='724' cy='520' r='31'/></g><rect x='30' y='30' width='840' height='615' fill='none' stroke='${accent}' stroke-width='3' stroke-dasharray='4 9'/>`,
+  christmas:`<path d='M0 0h900v86H0Z' fill='${second}'/><path d='M0 610h900v65H0Z' fill='${accent}'/><path d='M0 620h900M0 650h900M90 610v65m90-65v65m90-65v65m90-65v65m90-65v65m90-65v65m90-65v65m90-65v65m90-65v65' stroke='${mat}' opacity='.28'/><g fill='none' stroke='${mat}' stroke-width='5'><path d='M115 0v115M255 0v150M735 0v128'/><circle cx='115' cy='145' r='32'/><circle cx='255' cy='180' r='39'/><circle cx='735' cy='158' r='35'/></g><g fill='${accent}' stroke='${second}' stroke-width='5'><path d='M55 555c40-115 102-166 188-206-11 91-61 159-188 206Z'/><path d='M846 540c-43-110-103-159-186-194 15 87 65 151 186 194Z'/></g><g fill='${second}'><circle cx='95' cy='515' r='10'/><circle cx='128' cy='486' r='10'/><circle cx='795' cy='500' r='10'/></g>`,
+  halloween:`<rect width='900' height='675' fill='#201b27'/><path d='M0 605h900v70H0Z' fill='${accent}' opacity='.8'/><g fill='none' stroke='${second}' stroke-width='4' opacity='.6'><path d='M25 25q190 15 270 190M875 25q-190 15-270 190'/><path d='M25 65q145 5 230 150M875 65q-145 5-230 150'/></g><g fill='${accent}' opacity='.78'><ellipse cx='116' cy='548' rx='66' ry='54'/><ellipse cx='790' cy='540' rx='78' ry='64'/></g><rect x='32' y='32' width='836' height='611' fill='none' stroke='${mat}' stroke-width='3' stroke-dasharray='13 12' opacity='.6'/>`,
+  easter:`<path d='M0 0h900v82H0Z' fill='${accent}' opacity='.22'/><path d='M0 610h900v65H0Z' fill='${second}' opacity='.28'/><g fill='none' stroke='${accent}' stroke-width='5' opacity='.62'><path d='M80 555c70-125 125-200 205-255M820 100c-75 100-140 155-225 190'/></g><g fill='${second}' opacity='.45'><ellipse cx='125' cy='505' rx='25' ry='42' transform='rotate(20 125 505)'/><ellipse cx='185' cy='430' rx='27' ry='44' transform='rotate(-18 185 430)'/><ellipse cx='760' cy='148' rx='26' ry='43' transform='rotate(25 760 148)'/></g><path d='M35 35h830v605H35Z' fill='none' stroke='${accent}' stroke-width='3' stroke-dasharray='4 9'/>`,
+  patriotic:`<path d='M0 0h900v70H0Z' fill='${second}' opacity='.9'/><path d='M0 610h900v65H0Z' fill='${accent}' opacity='.9'/><path d='M0 620h900M0 650h900' stroke='${mat}' stroke-width='8' opacity='.35'/><g fill='${accent}' opacity='.54'><path d='m105 115 13 27 30 4-22 21 6 31-27-15-28 15 7-31-23-21 31-4Z'/><path d='m780 475 15 31 34 5-25 23 6 35-30-17-31 17 7-35-25-23 34-5Z'/></g><path d='M55 555Q450 430 845 555' fill='none' stroke='${second}' stroke-width='6' stroke-dasharray='18 10'/>`
+ };
+ const scene=scenes[kind]||scenes.vintage;
+ const bg=kind==='sunset'||kind==='winter'||kind==='chalk'||kind==='halloween'?scene:`<rect width='900' height='675' fill='${paper}'/><rect width='900' height='675' fill='url(#grain)' opacity='.72'/><path d='M0 0h900v36H0Z' fill='${accent}' opacity='.14'/><path d='M0 639h900v36H0Z' fill='${second}' opacity='.14'/>${scene}`;
+ const border=kind==='sunset'||kind==='winter'||kind==='chalk'||kind==='halloween'?'':`<rect x='24' y='24' width='852' height='627' rx='6' fill='none' stroke='${accent}' stroke-width='3' stroke-dasharray='4 10' opacity='.65'/><path d='M52 45h160M688 630h160' stroke='${second}' stroke-width='8' opacity='.45'/>`;
+ const svg=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 675'><defs><pattern id='grain' width='22' height='22' patternUnits='userSpaceOnUse'><circle cx='4' cy='5' r='1' fill='${accent}' opacity='.18'/><path d='M1 18h12' stroke='${second}' stroke-width='.7' opacity='.12'/></pattern><filter id='shadow' x='-20%' y='-20%' width='140%' height='140%'><feDropShadow dx='0' dy='5' stdDeviation='5' flood-opacity='.24'/></filter></defs>${bg}${border}</svg>`;
+ return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
 const STICKERS={
 'Seasonal':['🐰','🥕','🥚','🎄','🎅','❄️','🎃','👻','🦃','🍂','🎆','🇺🇸'],
 'Military':['🪖','🎖️','⭐','🇺🇸','⚓','✈️','🚁','🛡️'],
@@ -71,21 +117,28 @@ let state=null,history=[],future=[],selected=null,saveTimer=null,gesture=null,pe
 let multiSelected=new Set(),editAll=false,frameAll=false,photoEditMode=false;
 let renderController=null,lastLocalHash='',lastFirebaseHash='',syncPromise=Promise.resolve(),moveFrame=0,dirty=false,closing=false;
 const imageAssets=new Map();
+const savedPhotoAssets=new Map();
 const uid=()=>localStorage.getItem('ofa-uid')||'local-user';
 const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const clone=x=>typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x));
 const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)};
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function blank(){return {id:id(),title:'Untitled Scrapbook Page',theme:'Sea Glass',objects:[],updatedAt:Date.now(),owner:uid(),version:V}}
-function normalize(raw){const next=raw&&Array.isArray(raw.objects)?raw:blank();next.version=V;next.theme=THEMES[next.theme]?next.theme:'Sea Glass';return next}
-function load(){
+function blank(){return {id:id(),title:'',status:'draft',theme:'Sea Glass',objects:[],updatedAt:Date.now(),owner:uid(),version:V}}
+function normalize(raw){const next=raw&&Array.isArray(raw.objects)?raw:blank();next.version=V;next.theme=THEMES[next.theme]?next.theme:'Sea Glass';next.status=next.status||'draft';if(next.title==='Untitled Scrapbook Page')next.title='';return next}
+function assetDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open(ASSET_DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(ASSET_STORE))request.result.createObjectStore(ASSET_STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
+async function assetPut(key,value){const db=await assetDb();return new Promise((resolve,reject)=>{const tx=db.transaction(ASSET_STORE,'readwrite');tx.objectStore(ASSET_STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>{db.close();reject(tx.error)}})}
+async function assetGet(key){const db=await assetDb();return new Promise((resolve,reject)=>{const tx=db.transaction(ASSET_STORE,'readonly'),request=tx.objectStore(ASSET_STORE).get(key);request.onsuccess=()=>resolve(request.result||'');request.onerror=()=>reject(request.error);tx.oncomplete=()=>db.close()})}
+async function storePhotoAssets(){for(const o of state.objects){if(o.type!=='photo'||!o.src||String(o.src).startsWith('idb:'))continue;o.assetKey=o.assetKey||`${state.id}:${o.id}`;if(savedPhotoAssets.get(o.assetKey)===o.src)continue;await assetPut(o.assetKey,o.src);savedPhotoAssets.set(o.assetKey,o.src)}}
+function storageCopy(){const next=clone(state);next.objects.forEach(o=>{if(o.type==='photo'&&o.src){o.assetKey=o.assetKey||`${next.id}:${o.id}`;o.src=`idb:${o.assetKey}`}});return next}
+async function hydrateAssets(next){await Promise.all(next.objects.map(async o=>{if(o.type!=='photo'||!String(o.src).startsWith('idb:'))return;const key=o.assetKey||String(o.src).slice(4);o.assetKey=key;try{o.src=await assetGet(key);if(o.src)savedPhotoAssets.set(key,o.src)}catch(e){console.warn('Photo recovery',e);o.src=''}}));return next}
+async function load(){
  try{
   const primary=JSON.parse(localStorage.getItem(KEY)||'null');
   const recovery=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||'null');
   const best=recovery&&(!primary||Number(recovery.updatedAt)>Number(primary.updatedAt))?recovery:primary;
   const next=normalize(best);
   lastLocalHash=hash(JSON.stringify(next));
-  return next;
+  return await hydrateAssets(next);
  }catch(e){console.warn('Scrapbook recovery reset',e);return blank()}
 }
 function setStatus(text){const el=document.querySelector('#ss2-status');if(el)el.textContent=text}
@@ -101,7 +154,9 @@ async function storageSafe(serialized){
 async function persist({force=false,sync=true}={}){
  if(!state)return false;
  clearTimeout(saveTimer);saveTimer=null;
- const serialized=serializeCurrent();
+ state.updatedAt=Date.now();state.version=V;
+ try{await storePhotoAssets()}catch(e){console.warn('Photo asset save',e);setStatus('Photo save needs space');return false}
+ const serialized=JSON.stringify(storageCopy());
  const currentHash=hash(serialized);
  if(!force&&!dirty&&currentHash===lastLocalHash){setStatus('Saved');return true}
  try{
@@ -118,7 +173,7 @@ async function persist({force=false,sync=true}={}){
   return false;
  }
 }
-function scheduleSave(){dirty=true;setStatus('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(()=>persist(),SAVE_DELAY)}
+function scheduleSave(){dirty=true;if(state?.status==='final')state.status='draft';setStatus('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(()=>persist(),SAVE_DELAY)}
 function queueFirebaseSync(serialized,currentHash){
  if(currentHash===lastFirebaseHash)return;
  syncPromise=syncPromise.catch(()=>{}).then(async()=>{
@@ -177,7 +232,7 @@ function addText(){add('text',{text:'Double-tap to edit',fontSize:34,color:'#263
 function addSticker(text){add('sticker',{text,fontSize:70,w:100,h:100})}
 function render(){
  document.body.classList.add('ss2-open');document.querySelector('.ss2')?.remove();
- document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" aria-label="Page title"><span id="ss2-status">Saved</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button class="primary" id="ss2-export">PDF/JPEG</button><button class="ss2-mobiletool" data-panel=".ss2-left">＋ Add</button><button class="ss2-mobiletool" id="ss2-mundo">↶</button><button class="ss2-mobiletool" id="ss2-mredo">↷</button><button class="ss2-mobiletool" data-panel=".ss2-right">☷ Edit</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><button class="ss2-panel-close" type="button" aria-label="Close add panel">×</button><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Scrapbook layouts</h3><p>Complete illustrated papers, borders, and decorations.</p><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><h3>Frames</h3><label class="ss2-check"><input id="ss2-frame-all" type="checkbox" ${frameAll?'checked':''}> Add frame to every photo</label><p>Or check photos in Edit to frame only those.</p><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({none:'▢',heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage-viewport"><div class="ss2-stage" id="ss2-stage"></div></div></main><aside class="ss2-panel ss2-right"><button class="ss2-panel-close" type="button" aria-label="Close edit panel">×</button><h3>Edit</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div></section>`);
+ document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" placeholder="Untitled scrapbook — tap to name" aria-label="Page title"><span id="ss2-status">${state.status==='final'?'Finalized':'Draft saved'}</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button id="ss2-save">Save Draft</button><button id="ss2-finalize">${state.status==='final'?'Finalized ✓':'Finalize'}</button><button class="primary" id="ss2-export">PDF/JPEG</button><button class="ss2-mobiletool" data-panel=".ss2-left">＋ Add</button><button class="ss2-mobiletool" id="ss2-msave">Save</button><button class="ss2-mobiletool" id="ss2-mfinalize">Finalize</button><button class="ss2-mobiletool" data-panel=".ss2-right">☷ Edit</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><button class="ss2-panel-close" type="button" aria-label="Close add panel">×</button><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Professional scrapbook layouts</h3><p>Layered papers, stitching, ribbons, journaling details, and coordinated embellishments.</p><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><h3>Frames</h3><label class="ss2-check"><input id="ss2-frame-all" type="checkbox" ${frameAll?'checked':''}> Add frame to every photo</label><p>Or check photos in Edit to frame only those.</p><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({none:'▢',heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage-viewport"><div class="ss2-stage" id="ss2-stage"></div></div><div id="ss2-quickbar" class="ss2-quickbar"></div></main><aside class="ss2-panel ss2-right"><button class="ss2-panel-close" type="button" aria-label="Close edit panel">×</button><h3>Edit</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div><div id="ss2-notice" class="ss2-notice" role="status"></div></section>`);
  bind();renderStage();fit();updateUndoButtons();
 }
 function objectMarkup(o){
@@ -186,7 +241,7 @@ function objectMarkup(o){
  let inner='';
  if(o.type==='photo')inner=`<div class="ss2-object-content ss2-frame" data-shape="${o.shape||'none'}" style="${photoDecor}"><img draggable="false" src="${o.src}" style="object-fit:${o.fit||'cover'};transform:translate3d(${o.photoX||0}px,${o.photoY||0}px,0) scale(${o.photoScale||1})"></div><span class="ss2-photo-number">${photoNumber(o)}</span>`;
  else inner=`<div class="ss2-object-content"><div class="ss2-text" style="font-size:${o.type==='sticker'?Math.max(18,Math.min(o.w,o.h)*.72):(o.fontSize||50)}px;color:${o.color||'#263238'};font-weight:${o.fontWeight||400}">${esc(o.text)}</div></div>`;
- if(o.id===selected)inner+='<button class="ss2-resize-handle" type="button" aria-label="Resize selected object"></button>';
+ if(o.id===selected)inner+='<button class="ss2-delete-handle" type="button" aria-label="Delete selected object">×</button><button class="ss2-resize-handle" type="button" aria-label="Resize selected object"></button>';
  const cls=`ss2-object ${o.id===selected?'selected':''} ${multiSelected.has(o.id)?'multi-selected':''} ${o.locked?'locked':''}`;
  return `<div class="${cls}" data-id="${o.id}" style="${style}">${inner}</div>`;
 }
@@ -195,7 +250,8 @@ function renderStage(){
  const th=THEMES[state.theme]||THEMES['Sea Glass'];st.style.background=th[0];st.style.backgroundImage=themeArt(state.theme);st.style.backgroundSize='cover';st.style.backgroundPosition='center';st.dataset.corner='';
  st.innerHTML=state.objects.length?state.objects.slice().sort((a,b)=>a.z-b.z).map(objectMarkup).join(''):'<div class="ss2-empty">Tap + to add photos, stickers, or text</div>';
  st.querySelectorAll('.ss2-object').forEach(el=>{el.onpointerdown=startGesture;el.ondblclick=editObject});
- renderControls();renderLayers();
+ st.querySelectorAll('.ss2-delete-handle').forEach(button=>{button.onpointerdown=e=>e.stopPropagation();button.onclick=e=>{e.stopPropagation();removeObject(button.closest('.ss2-object').dataset.id)}});
+ renderControls();renderLayers();renderQuickbar();
 }
 function renderControls(){
  const c=document.querySelector('#ss2-controls'),o=obj();if(!c)return;if(!o){c.innerHTML=`${photoSelectionTools()}<p>Select an object on the page or choose a numbered photo below.</p>`;return}
@@ -221,8 +277,28 @@ function renderControls(){
  if(bulk)bulk.onchange=()=>{editAll=bulk.checked;if(editAll&&!multiSelected.size)multiSelected=new Set(photos().map(x=>x.id));renderStage()};
 }
 function photoSelectionTools(){if(!photos().length)return'';return `<div class="ss2-selection-tools"><button id="ss2-select-all">Select all photos</button><button id="ss2-select-none">Clear</button></div><label class="ss2-check"><input id="ss2-edit-all" type="checkbox" ${editAll?'checked':''}> Edit checked photos together</label>`}
-function updateObjectElement(o){const el=document.querySelector(`.ss2-object[data-id="${CSS.escape(o.id)}"]`);if(!el){renderStage();return}const fresh=document.createRange().createContextualFragment(objectMarkup(o)).firstElementChild;el.replaceWith(fresh);fresh.onpointerdown=startGesture;fresh.ondblclick=editObject}
+function updateObjectElement(o){const el=document.querySelector(`.ss2-object[data-id="${CSS.escape(o.id)}"]`);if(!el){renderStage();return}const fresh=document.createRange().createContextualFragment(objectMarkup(o)).firstElementChild;el.replaceWith(fresh);fresh.onpointerdown=startGesture;fresh.ondblclick=editObject;const del=fresh.querySelector('.ss2-delete-handle');if(del){del.onpointerdown=e=>e.stopPropagation();del.onclick=e=>{e.stopPropagation();removeObject(o.id)}}}
 function renderLayers(){const l=document.querySelector('#ss2-layers');if(!l)return;l.innerHTML=state.objects.slice().sort((a,b)=>b.z-a.z).map(o=>{if(o.type==='photo'){const n=photoNumber(o);return `<div class="ss2-layer-row ${o.id===selected?'active':''}"><button data-layer="${o.id}"><img src="${o.src}" alt=""><span><b>Photo ${n}</b><small>${o.shape&&o.shape!=='none'?o.shape+' frame':'No frame'}</small></span></button><label title="Include Photo ${n} in bulk edits"><input data-multi="${o.id}" type="checkbox" ${multiSelected.has(o.id)?'checked':''}><span>Select</span></label></div>`}return `<div class="ss2-layer-row ${o.id===selected?'active':''}"><button data-layer="${o.id}"><span><b>${o.locked?'🔒 ':''}${o.type==='text'?'T '+esc(o.text).slice(0,18):o.text+' sticker'}</b></span></button></div>`}).join('');l.querySelectorAll('[data-layer]').forEach(b=>b.onclick=()=>{selected=b.dataset.layer;photoEditMode=false;renderStage()});l.querySelectorAll('[data-multi]').forEach(i=>i.onchange=()=>{i.checked?multiSelected.add(i.dataset.multi):multiSelected.delete(i.dataset.multi);renderStage()})}
+function removeObject(objectId){const target=state.objects.find(x=>x.id===objectId);if(!target)return;snapshot();state.objects=state.objects.filter(x=>x.id!==objectId);multiSelected.delete(objectId);if(selected===objectId)selected=null;renderStage();scheduleSave();notice(`${target.type==='sticker'?'Sticker':'Object'} deleted`)}
+function renderQuickbar(){
+ const q=document.querySelector('#ss2-quickbar'),o=obj();if(!q)return;
+ if(!o){q.innerHTML='<span class="ss2-quick-hint">Tap a photo or sticker for quick editing.</span><button data-quick="undo">↶ Undo</button><button data-quick="redo">Redo ↷</button>'}
+ else if(o.type==='photo')q.innerHTML=`<strong>Photo ${photoNumber(o)}</strong><button data-quick="inside" class="${photoEditMode?'active':''}">${photoEditMode?'Move photo now':'Move photo'}</button><button data-quick="zoomout">Zoom −</button><button data-quick="zoomin">Zoom +</button><button data-quick="fit">Fit</button><button data-quick="fill">Fill</button><button class="danger" data-quick="delete">Delete</button><div class="ss2-quick-frames">${SHAPES.map(shape=>`<button data-quick-frame="${shape}" class="${shape===(o.shape||'none')?'active':''}">${shape==='none'?'No frame':shape}</button>`).join('')}</div>`
+ else q.innerHTML=`<strong>${o.type==='sticker'?'Sticker':'Text'}</strong><button data-quick="smaller">Smaller</button><button data-quick="larger">Larger</button><button data-quick="rotate">Rotate</button><button data-quick="duplicate">Duplicate</button><button class="danger" data-quick="delete">Delete</button>`;
+ q.querySelectorAll('[data-quick]').forEach(button=>button.onclick=()=>quickAction(button.dataset.quick));
+ q.querySelectorAll('[data-quick-frame]').forEach(button=>button.onclick=()=>setFrames([obj()].filter(Boolean),button.dataset.quickFrame));
+}
+function quickAction(name){
+ if(name==='undo')return undo();if(name==='redo')return redo();const o=obj();if(!o)return;
+ if(name==='delete')return removeObject(o.id);if(name==='duplicate')return action('duplicate');if(name==='inside'){photoEditMode=!photoEditMode;renderStage();return}
+ snapshot();
+ if(name==='smaller'){o.w=Math.max(40,o.w*.82);o.h=Math.max(40,o.h*.82)}
+ if(name==='larger'){o.w=Math.min(850,o.w*1.18);o.h=Math.min(630,o.h*1.18)}
+ if(name==='rotate')o.r=((o.r||0)+15)%360;
+ if(name==='zoomout')o.photoScale=Math.max(.25,(o.photoScale||1)-.15);
+ if(name==='zoomin')o.photoScale=Math.min(4,(o.photoScale||1)+.15);
+ if(name==='fit')o.fit='contain';if(name==='fill')o.fit='cover';renderStage();scheduleSave();
+}
 function action(a){
  const o=obj();if(!o)return;if(a==='inside'){photoEditMode=!photoEditMode;renderStage();return}snapshot();
  if(a==='delete'){state.objects=state.objects.filter(x=>x.id!==o.id);multiSelected.delete(o.id);selected=null}
@@ -261,17 +337,24 @@ function fit(){
  st.style.transform=`scale(${s})`;st.dataset.scale=String(s);
 }
 function closePanels(){document.querySelectorAll('.ss2-panel.open').forEach(p=>p.classList.remove('open'))}
+function setFrames(targets,shape){if(!targets.length)return;snapshot();targets.forEach(o=>{o.shape=shape;if(shape==='none'){o.borderWidth=0;o.shadow=0;o.glow=0}else if(!Number(o.borderWidth)){o.borderWidth=6}});renderStage();scheduleSave()}
 function applyFrame(shape){
  const targets=frameTargets();if(!targets.length){alert('Select a photo, check photos in Edit, or turn on “Add frame to every photo.”');return}
- snapshot();targets.forEach(o=>{o.shape=shape;if(shape==='none'){o.borderWidth=0;o.shadow=0;o.glow=0}else if(!Number(o.borderWidth)){o.borderWidth=6}});
- renderStage();scheduleSave();closePanels();
+ setFrames(targets,shape);closePanels();
 }
+let noticeTimer=0;
+function notice(text){const el=document.querySelector('#ss2-notice');if(!el)return;clearTimeout(noticeTimer);el.textContent=text;el.classList.add('show');noticeTimer=setTimeout(()=>el.classList.remove('show'),2400)}
+async function saveDraft(){state.status='draft';delete state.finalizedAt;const ok=await persist({force:true});if(ok){setStatus('Draft saved');notice('Draft and photos saved on this device')}else notice('Draft could not be saved — check device storage')}
+async function finalizePage(){if(!String(state.title||'').trim()){document.querySelector('#ss2-title')?.focus();notice('Name this scrapbook before finalizing');return}state.status='final';state.finalizedAt=Date.now();const ok=await persist({force:true});if(ok){setStatus('Finalized');document.querySelector('#ss2-finalize').textContent='Finalized ✓';document.querySelector('#ss2-mfinalize').textContent='Final ✓';notice('Page finalized and saved')}else notice('Page could not be finalized')}
 function bind(){
  renderController?.abort();renderController=new AbortController();const {signal}=renderController;
  const on=(target,type,fn,options={})=>target?.addEventListener(type,fn,{...options,signal});
  on(document.querySelector('#ss2-close'),'click',close);
+ on(document.querySelector('#ss2-title'),'focus',e=>e.target.select());
  on(document.querySelector('#ss2-title'),'input',e=>{state.title=e.target.value;scheduleSave()});
  on(document.querySelector('#ss2-undo'),'click',undo);on(document.querySelector('#ss2-redo'),'click',redo);on(document.querySelector('#ss2-mundo'),'click',undo);on(document.querySelector('#ss2-mredo'),'click',redo);
+ on(document.querySelector('#ss2-save'),'click',saveDraft);on(document.querySelector('#ss2-msave'),'click',saveDraft);
+ on(document.querySelector('#ss2-finalize'),'click',finalizePage);on(document.querySelector('#ss2-mfinalize'),'click',finalizePage);
  on(document.querySelector('#ss2-photo'),'click',()=>{pendingShape='none';document.querySelector('#ss2-files').click()});
  on(document.querySelector('#ss2-files'),'change',handleFiles);
  on(document.querySelector('#ss2-text'),'click',addText);on(document.querySelector('#ss2-emoji'),'click',()=>{const text=prompt('Enter emoji','😊');if(text)addSticker(text)});
@@ -286,15 +369,15 @@ function bind(){
 async function handleFiles(e){
  const input=e.currentTarget;const files=[...input.files];const replaceId=input.dataset.replace||'';delete input.dataset.replace;input.value='';
  const shape=pendingShape||'none';pendingShape=null;if(!files.length)return;
- if(replaceId){const target=state.objects.find(x=>x.id===replaceId);if(target){snapshot();target.src=await compressImage(files[0]);target.name=files[0].name||target.name||'';target.shape=shape;selected=target.id;renderStage();scheduleSave()}return}
+ if(replaceId){const target=state.objects.find(x=>x.id===replaceId);if(target){snapshot();target.src=await compressImage(files[0]);delete target.assetKey;target.name=files[0].name||target.name||'';target.shape=shape;selected=target.id;renderStage();scheduleSave()}return}
  for(const file of files)await addPhoto(file,shape);
 }
 async function exportPage(){
  const editor=document.querySelector('.ss2');editor?.classList.add('exporting');setStatus('Exporting…');
- try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.4.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.4.pdf')}}finally{editor?.classList.remove('exporting');setStatus('Saved')}
+ try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.5.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.5.pdf')}}finally{editor?.classList.remove('exporting');setStatus('Saved')}
 }
 function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook'}
-function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=load();history=[];future=[];selected=null;multiSelected.clear();editAll=false;frameAll=false;photoEditMode=false;render()}
+async function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=await load();history=[];future=[];selected=null;multiSelected.clear();editAll=false;frameAll=false;photoEditMode=false;render()}
 async function close(){if(closing)return;closing=true;await persist({force:true});renderController?.abort();renderController=null;document.querySelector('.ss2')?.remove();document.body.classList.remove('ss2-open');if(location.hash.startsWith('#scrapbook'))location.hash='#home';closing=false}
 window.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
 window.visualViewport?.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});

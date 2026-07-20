@@ -49,6 +49,21 @@ test('mobile add and edit tools live in the top toolbar', () => {
   assert.match(css, /grid-template-rows:auto auto/);
 });
 
+test('mobile precision editing uses a bottom sheet and canvas quick controls', () => {
+  assert.match(css, /\.ss2-right\{left:0;right:0;top:46%/);
+  assert.match(studio, /id="ss2-quickbar"/);
+  assert.match(studio, /function renderQuickbar\(\)/);
+  assert.match(studio, /data-quick="zoomin"/);
+  assert.match(studio, /data-quick-frame=/);
+});
+
+test('stickers resize and delete directly on the scrapbook page', () => {
+  assert.match(studio, /ss2-delete-handle/);
+  assert.match(studio, /Sticker[^`]*Smaller[^`]*Larger[^`]*Delete/);
+  assert.match(css, /\.ss2-delete-handle\{/);
+  assert.match(studio, /function removeObject\(objectId\)/);
+});
+
 test('photos have numbered thumbnails, checkboxes, and bulk editing', () => {
   assert.match(studio, /class="ss2-photo-number"/);
   assert.match(studio, /data-multi=/);
@@ -60,6 +75,26 @@ test('themes render complete illustrated scrapbook layouts', () => {
   assert.match(studio, /function themeArt\(name\)/);
   assert.match(studio, /backgroundImage=themeArt\(state\.theme\)/);
   assert.match(studio, /<svg xmlns='http:\/\/www\.w3\.org\/2000\/svg'/);
+  assert.match(studio, /'Happy Hour'.*'happyhour'/);
+  assert.match(studio, /'Sunset Glow'.*'sunset'/);
+  assert.match(studio, /'Wedding Romance'.*'wedding'/);
+  assert.match(studio, /'Christmas 🎄'.*'christmas'/);
+});
+
+test('draft photos use IndexedDB instead of filling localStorage', () => {
+  assert.match(studio, /const ASSET_DB='ofa-scrapbook-assets'/);
+  assert.match(studio, /indexedDB\.open\(ASSET_DB,1\)/);
+  assert.match(studio, /o\.src=`idb:\$\{o\.assetKey\}`/);
+  assert.match(studio, /await storePhotoAssets\(\)/);
+  assert.match(studio, /state=await load\(\)/);
+});
+
+test('page naming, save draft, and finalization are explicit', () => {
+  assert.match(studio, /placeholder="Untitled scrapbook — tap to name"/);
+  assert.match(studio, /e=>e\.target\.select\(\)/);
+  assert.match(studio, /function saveDraft\(\)/);
+  assert.match(studio, /function finalizePage\(\)/);
+  assert.match(studio, /Name this scrapbook before finalizing/);
 });
 
 test('only one mobile panel can remain open', () => {

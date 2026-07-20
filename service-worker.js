@@ -1,7 +1,7 @@
-/* Our Family Adventures 10.3.4 PWA cache worker. Push is handled by firebase-messaging-sw.js. */
-const CACHE='ofa-10-3-4';
-const OFFLINE='./index.html?v=10.3.4';
-const CORE=['./','./index.html?v=10.3.4','./404.html','./style.css?v=10.3.4','./scrapbook-studio-2.css?v=10.3.4','./app.js?v=10.3.4','./scrapbook-studio-2.js?v=10.3.4','./manifest.json?v=10.3.4','./firebase-config.js?v=10.3.4','./assets/lighthouse-home.png','./icons/icon-192.png','./icons/icon-512.png'];
+/* Our Family Adventures 10.3.5 PWA cache worker. Push is handled by firebase-messaging-sw.js. */
+const CACHE='ofa-10-3-5';
+const OFFLINE='./index.html?v=10.3.5';
+const CORE=['./','./index.html?v=10.3.5','./404.html','./style.css?v=10.3.5','./scrapbook-studio-2.css?v=10.3.5','./app.js?v=10.3.5','./scrapbook-studio-2.js?v=10.3.5','./manifest.json?v=10.3.5','./firebase-config.js?v=10.3.5','./assets/lighthouse-home.png','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{
