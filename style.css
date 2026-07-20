@@ -752,6 +752,6 @@ body:not(.scrapEditing) main#view{padding-bottom:calc(116px + env(safe-area-inse
 .dark .scrapbookWelcome,.dark .studioPageRow{background:#161917;color:#f6e8e8;border-color:#617467}
 @media(max-width:560px){.studioPageRow{grid-template-columns:minmax(0,1fr)}.studioPageRow button{width:100%}}
 
-/* 10.3.8 visual scrapbook library */
+/* 10.3.9 visual scrapbook library */
 .studioPageRow{grid-template-columns:112px minmax(0,1fr) auto}.studioPageThumb{display:grid;grid-template-columns:repeat(3,1fr);width:112px;height:82px;overflow:hidden;border:1px solid var(--border,#718775);border-radius:12px;background:linear-gradient(135deg,#d6ece8,#ead8b9);position:relative}.studioPageThumb img{display:block;width:100%;height:100%;min-width:0;object-fit:cover}.studioPageThumb span{grid-column:1/-1;display:grid;place-items:center;font-size:38px}.studioPageThumb small{position:absolute;left:5px;right:5px;bottom:4px;overflow:hidden;padding:2px 5px;border-radius:5px;background:#111a;color:#fff;text-align:center;text-overflow:ellipsis;white-space:nowrap}.dark .studioPageThumb{background:linear-gradient(135deg,#25443d,#5a4834)}
 @media(max-width:560px){.studioPageRow{grid-template-columns:86px minmax(0,1fr)}.studioPageRow>button{grid-column:1/-1}.studioPageThumb{width:86px;height:70px}}
