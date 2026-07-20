@@ -155,6 +155,7 @@ test('text cutouts and professional theme arrangements are available', () => {
   assert.match(studio, /Font color/);
   assert.match(studio, /No background fill/);
   assert.match(studio, /function applyThemeLayout\(\)/);
+  assert.match(studio, /const columns=Math\.min\(4,Math\.ceil\(Math\.sqrt\(rows\.length\*1\.3\)\)\)/);
   assert.match(css, /data-text-shape=speech/);
 });
 

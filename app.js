@@ -289,14 +289,17 @@ admin(){if(!adminIsUnlocked())return card('Admin Locked',`<p>Enter the administr
 function memoryPhotoItems(memory){
   const media=arr('media').filter(canAccessItem),ids=Array.isArray(memory.mediaIds)?memory.mediaIds:[],urls=Array.isArray(memory.photos)?memory.photos.filter(Boolean):[];
   let items=ids.map(mediaId=>media.find(m=>m.id===mediaId)).filter(Boolean);
-  urls.forEach(url=>{if(!items.some(m=>m.url===url))items.push(media.find(m=>m.url===url)||{id:'',url,name:memory.title||'Memory photo'})});
-  if(!items.length&&memory.createdAt){
-    items=media.filter(m=>m.url&&String(m.type||'').startsWith('image')&&String(m.owner||'')===String(memory.owner||'')&&String(m.tripId||'')===String(memory.tripId||'')&&Math.abs(Number(m.createdAt||0)-Number(memory.createdAt))<10*60*1000).slice(0,5);
+  const missing=[];
+  urls.forEach(url=>{if(items.some(m=>m.url===url))return;let decoded='';try{decoded=decodeURIComponent(url)}catch{}const linked=media.find(m=>m.url===url||(m.storagePath&&decoded.includes(m.storagePath)));if(linked)items.push(linked);else missing.push(url)});
+  if(missing.length&&memory.createdAt){
+    const inferred=media.filter(m=>m.url&&(!m.type||String(m.type).startsWith('image'))&&!items.some(item=>item.id===m.id)&&String(m.owner||'')===String(memory.owner||'')&&String(m.tripId||'')===String(memory.tripId||'')&&Math.abs(Number(m.createdAt||0)-Number(memory.createdAt))<10*60*1000).slice(0,missing.length);
+    items.push(...inferred);missing.splice(0,inferred.length);
   }
+  missing.forEach(url=>items.push({id:'',url,name:memory.title||'Memory photo'}));
   return items.filter(m=>m?.url);
 }
 async function repairMemoryThumbnail(img,mediaId){
-  const media=arr('media').find(m=>m.id===mediaId);if(!media||img.dataset.repairing==='yes')return;
+  const media=arr('media').find(m=>m.id===mediaId);if(img.dataset.repairing==='yes')return;if(!media){img.closest('.photoThumb')?.classList.add('photoUnavailable');img.alt='Photo unavailable';return}
   img.dataset.repairing='yes';
   try{if(media.storagePath&&window.firebase?.storage){const url=await firebase.storage().ref(media.storagePath).getDownloadURL();media.url=url;img.src=url;arr('memories').forEach(memory=>{if((memory.mediaIds||[]).includes(media.id)){const i=memory.mediaIds.indexOf(media.id);memory.photos=Array.isArray(memory.photos)?memory.photos:[];memory.photos[i]=url}});save();return}}catch(e){console.warn('Memory thumbnail repair',e)}
   img.closest('.photoThumb')?.classList.add('photoUnavailable');img.alt='Photo unavailable';

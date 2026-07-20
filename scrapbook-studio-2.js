@@ -146,7 +146,7 @@ async function load(pageId=''){
   let primary=JSON.parse((activeId&&localStorage.getItem(draftKey(activeId)))||localStorage.getItem(KEY)||'null');
   if(!primary&&activeId&&bridge()?.loadPage)primary=await bridge().loadPage(activeId,window.__ss2OwnerUid||'');
   const recovery=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||'null');
-  const matchingRecovery=recovery&&(!primary||recovery.id===primary.id)?recovery:null;
+  const matchingRecovery=recovery&&(!activeId||recovery.id===activeId)&&(!primary||recovery.id===primary.id)?recovery:null;
   const best=matchingRecovery&&(!primary||Number(matchingRecovery.updatedAt)>Number(primary.updatedAt))?matchingRecovery:primary;
   const next=normalize(best);
   lastLocalHash=hash(JSON.stringify(next));
@@ -386,9 +386,11 @@ function applyFrame(shape){
 }
 function applyThemeLayout(){
  const rows=photos();if(!rows.length){notice('Add photos before arranging the page');return}snapshot();
- const layouts={1:[[180,115,540,405,0]],2:[[70,120,350,390,-3],[480,120,350,390,3]],3:[[55,70,430,350,-2],[535,80,300,235,3],[500,365,340,250,-3]],4:[[55,65,350,250,-3],[495,65,350,250,2],[55,360,350,250,2],[495,360,350,250,-2]]};
- const spots=layouts[Math.min(4,rows.length)]||layouts[4],themeShapes={'Wedding Romance':'vintage','Pet Memories':'oval','Happy Hour':'polaroid','Camping Under the Stars':'vintage','Christmas 🎄':'polaroid','Baby Keepsake':'oval'};
- rows.forEach((photo,i)=>{const [x,y,w,h,r]=spots[i%spots.length];Object.assign(photo,{x,y,w,h,r,z:i+2,shape:themeShapes[state.theme]||'none',borderWidth:8,border:'#fffaf2',shadow:18,glow:0,fit:'cover'})});
+ const layouts={1:[[180,115,540,405,0]],2:[[70,120,350,390,-3],[480,120,350,390,3]],3:[[55,70,430,350,-2],[535,80,300,235,3],[500,365,340,250,-3]],4:[[55,65,350,250,-3],[495,65,350,250,2],[55,360,350,250,2],[495,360,350,250,-2]],5:[[65,65,350,245,-3],[485,65,350,245,2],[45,365,245,210,2],[330,355,245,220,-2],[615,365,245,210,3]],6:[[45,75,250,225,-2],[325,65,250,235,1],[605,75,250,225,3],[45,365,250,225,2],[325,375,250,215,-1],[605,365,250,225,-3]]};
+ const columns=Math.min(4,Math.ceil(Math.sqrt(rows.length*1.3))),lineCount=Math.ceil(rows.length/columns),cellW=820/columns,cellH=555/lineCount;
+ const spots=layouts[rows.length]||rows.map((_,i)=>{const column=i%columns,line=Math.floor(i/columns),w=Math.max(120,cellW-28),h=Math.max(100,cellH-26);return[40+column*cellW+14,55+line*cellH+13,w,h,(i%3-1)*2]});
+ const themeShapes={'Wedding Romance':'vintage','Pet Memories':'oval','Happy Hour':'polaroid','Camping Under the Stars':'vintage','Christmas 🎄':'polaroid','Baby Keepsake':'oval'};
+ rows.forEach((photo,i)=>{const [x,y,w,h,r]=spots[i];Object.assign(photo,{x,y,w,h,r,z:i+2,shape:themeShapes[state.theme]||'none',borderWidth:8,border:'#fffaf2',shadow:18,glow:0,fit:'cover'})});
  renderStage();scheduleSave();closePanels();notice('Professional theme layout applied');
 }
 let noticeTimer=0;
