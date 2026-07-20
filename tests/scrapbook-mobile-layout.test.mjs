@@ -7,6 +7,10 @@ const studio = readFileSync(new URL('../scrapbook-studio-2.js', import.meta.url)
 const worker = readFileSync(new URL('../service-worker.js', import.meta.url), 'utf8');
 const app = readFileSync(new URL('../app.js', import.meta.url), 'utf8');
 const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const databaseRules = readFileSync(new URL('../database.rules.json', import.meta.url), 'utf8');
+const storageRules = readFileSync(new URL('../storage.rules', import.meta.url), 'utf8');
+const firestoreRules = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+const functions = readFileSync(new URL('../Functions/index.js', import.meta.url), 'utf8');
 
 test('mobile editor cannot inherit the fixed stage width', () => {
   assert.match(css, /grid-template-columns:minmax\(0,1fr\)/);
@@ -75,7 +79,7 @@ test('photos have numbered thumbnails, checkboxes, and bulk editing', () => {
 
 test('themes render complete illustrated scrapbook layouts', () => {
   assert.match(studio, /function themeArt\(name\)/);
-  assert.match(studio, /backgroundImage=themeArt\(state\.theme\)/);
+  assert.match(studio, /backgroundImage=cachedThemeArt\(state\.theme\)/);
   assert.match(studio, /<svg xmlns='http:\/\/www\.w3\.org\/2000\/svg'/);
   assert.match(studio, /'Happy Hour'.*'happyhour'/);
   assert.match(studio, /'Sunset Glow'.*'sunset'/);
@@ -159,9 +163,71 @@ test('text cutouts and professional theme arrangements are available', () => {
   assert.match(css, /data-text-shape=speech/);
 });
 
-test('all release entry points use version 10.3.7', () => {
-  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.7/);
+test('exports embed every photo instead of silently omitting remote images', () => {
+  assert.match(studio, /function inlineExportImages\(clone\)/);
+  assert.match(studio, /await inlineExportImages\(built\.clone\)/);
+  assert.match(studio, /fetch\(src,\{mode:'cors'/);
+  assert.match(studio, /img\.src=await blobToDataUrl/);
+  assert.match(studio, /Export stopped because a photo could not be embedded/);
+});
+
+test('expressive editable text and visible mobile add feedback are available', () => {
+  assert.match(studio, /data-text-value/);
+  assert.match(studio, /plain:\['',330,90,'transparent'\]/);
+  for (const shape of ['speech-right', 'thought', 'shout', 'torn', 'caption']) assert.match(studio, new RegExp(`data-text-preset="${shape}"`));
+  assert.match(css, /data-text-shape=thought/);
+  assert.match(css, /data-text-shape=shout/);
+  assert.match(css, /\.ss2-left\{left:0;right:0;top:42%/);
+});
+
+test('page naming, multiple photo layouts, thumbnails, and portable final pages are wired', () => {
+  assert.match(studio, /id="ss2-panel-title"/);
+  for (const layout of ['collage', 'grid', 'feature', 'filmstrip', 'mosaic', 'freeform']) assert.match(studio, new RegExp(`data-layout="${layout}"`));
+  assert.match(studio, /function applyLayoutMode\(mode\)/);
+  assert.match(studio, /photoPreviews/);
+  assert.match(app, /previewPhotos/);
+  assert.match(app, /function portableStudioState\(page\)/);
+  assert.match(app, /studioState/);
+});
+
+test('holiday artwork uses recognizable decorated trees and carved pumpkins', () => {
+  assert.match(studio, /id='pine'/);
+  assert.match(studio, /id='pumpkinGlow'/);
+  assert.match(studio, /fill='#211922'/);
+});
+
+test('all release entry points use version 10.3.8', () => {
+  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.8/);
   for (const source of [app, studio, worker, index]) assert.doesNotMatch(source, /10\.3\.6/);
+});
+
+test('the source does not publish a default administrator PIN', () => {
+  assert.match(app, /adminCode:''/);
+  assert.match(app, /Create a new 4–12 digit admin PIN/);
+  assert.doesNotMatch(app, /adminCode:'1218'/);
+});
+
+test('family data requires approved membership instead of any authenticated account', () => {
+  assert.match(databaseRules, /familyMembers/);
+  assert.match(databaseRules, /child\('active'\)\.val\(\) == true/);
+  assert.doesNotMatch(databaseRules, /"\.read": "auth != null"/);
+  assert.match(storageRules, /request\.auth\.token\.familyMember == true/);
+  assert.match(storageRules, /request\.auth\.token\.familyId == familyId/);
+  assert.match(firestoreRules, /allow read, write: if false/);
+});
+
+test('account creation is invitation-only and authorization is issued server-side', () => {
+  assert.match(app, /A secure family invitation link is required to create an account/);
+  assert.match(app, /httpsCallable\('authorizeFamilyMember'\)/);
+  assert.match(functions, /exports\.authorizeFamilyMember = onCall/);
+  assert.match(functions, /setCustomUserClaims/);
+  assert.match(functions, /approvedBy: 'family-invitation'/);
+});
+
+test('public source contains no administrator email address', () => {
+  for (const source of [app, databaseRules, storageRules, functions]) {
+    assert.doesNotMatch(source, /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  }
 });
 
 test('PWA core cache only references files that exist', () => {

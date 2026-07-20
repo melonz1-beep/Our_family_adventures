@@ -1,13 +1,13 @@
 {
   "functions": {
-    "source": "functions"
+    "source": "Functions"
   },
   "hosting": {
     "public": ".",
     "ignore": [
       "firebase.json",
       ".firebaserc",
-      "functions/**",
+      "Functions/**",
       "**/.*",
       "**/node_modules/**"
     ],
@@ -40,5 +40,11 @@
   },
   "database": {
     "rules": "database.rules.json"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

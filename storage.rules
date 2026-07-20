@@ -1,1 +1,28 @@
-rules_version = '2'; service firebase.storage { match /b/{bucket}/o { match /families/{familyId}/{allPaths=**} { allow read, write: if request.auth != null; } } }
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /families/{familyId}/{allPaths=**} {
+      function isFamilyMember() {
+        return request.auth != null
+          && request.auth.token.familyMember == true
+          && request.auth.token.familyId == familyId;
+      }
+
+      function isAdmin() {
+        return isFamilyMember() && request.auth.token.familyRole == 'Admin';
+      }
+
+      allow read: if isFamilyMember();
+      allow create: if isFamilyMember()
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.metadata.ownerUid == request.auth.uid;
+      allow update: if isFamilyMember()
+        && (isAdmin() || resource.metadata.ownerUid == request.auth.uid)
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isAdmin() || (isFamilyMember() && resource.metadata.ownerUid == request.auth.uid);
+    }
+  }
+}

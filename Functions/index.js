@@ -2,22 +2,147 @@
 
 const { onValueCreated } = require('firebase-functions/v2/database');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { logger } = require('firebase-functions');
 const { initializeApp } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
 const { getMessaging } = require('firebase-admin/messaging');
+const { getAuth } = require('firebase-admin/auth');
 
 initializeApp();
 
 const MAX_TARGETS = 100;
 const MAX_TOKENS_PER_SEND = 500;
-const APP_URL = 'https://melonz1-beep.github.io/Our_family_adventures/index.html?v=10.0.5#notifications';
+const APP_URL = 'https://melonz1-beep.github.io/Our_family_adventures/index.html?v=10.3.8#notifications';
 const DEFAULT_ICON_URL = 'https://melonz1-beep.github.io/Our_family_adventures/icons/icon-192.png';
 const DEFAULT_BADGE_URL = 'https://melonz1-beep.github.io/Our_family_adventures/icons/badge-96.png';
 const INVALID_TOKEN_CODES = new Set([
   'messaging/invalid-registration-token',
   'messaging/registration-token-not-registered'
 ]);
+
+const FAMILY_ROLES = new Set(['Admin', 'Family', 'Guest', 'Child']);
+
+function cleanFamilyId(value) {
+  const familyId = String(value || '').trim().toLowerCase();
+  if (!/^[a-z0-9_-]{1,80}$/.test(familyId)) throw new HttpsError('invalid-argument', 'A valid family workspace is required.');
+  return familyId;
+}
+
+function cleanInviteCode(value) {
+  const code = String(value || '').trim();
+  if (!/^[a-zA-Z0-9]{12,128}$/.test(code)) throw new HttpsError('invalid-argument', 'A valid invitation code is required.');
+  return code;
+}
+
+function cleanRole(value) {
+  return FAMILY_ROLES.has(value) ? value : 'Family';
+}
+
+function normalizedEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+async function findInvitation(familyId, inviteId, inviteCode) {
+  const db = getDatabase();
+  const base = db.ref(`families/${familyId}/pendingInvites`);
+  if (inviteId) {
+    const direct = await base.child(String(inviteId)).get();
+    const value = direct.val();
+    if (direct.exists() && String(value?.code || '') === inviteCode) return { key: direct.key, value };
+  }
+  const found = await base.orderByChild('code').equalTo(inviteCode).limitToFirst(1).get();
+  let result = null;
+  found.forEach(child => { if (!result) result = { key: child.key, value: child.val() }; });
+  return result;
+}
+
+async function applyFamilyClaims(uid, familyId, role) {
+  const auth = getAuth();
+  const user = await auth.getUser(uid);
+  await auth.setCustomUserClaims(uid, {
+    ...(user.customClaims || {}),
+    familyId,
+    familyMember: true,
+    familyRole: cleanRole(role)
+  });
+}
+
+exports.lookupFamilyInvite = onCall({ region: 'us-central1', cors: true }, async request => {
+  const familyId = cleanFamilyId(request.data?.familyId);
+  const inviteCode = cleanInviteCode(request.data?.inviteCode);
+  const invitation = await findInvitation(familyId, request.data?.inviteId || '', inviteCode);
+  if (!invitation || String(invitation.value?.status || '').toLowerCase() === 'revoked') {
+    throw new HttpsError('not-found', 'This invitation is invalid or has been revoked.');
+  }
+  return {
+    id: invitation.key,
+    code: inviteCode,
+    email: normalizedEmail(invitation.value.email),
+    name: String(invitation.value.name || ''),
+    role: cleanRole(invitation.value.role),
+    status: String(invitation.value.status || 'Pending')
+  };
+});
+
+exports.authorizeFamilyMember = onCall({ region: 'us-central1', cors: true }, async request => {
+  if (!request.auth?.uid) throw new HttpsError('unauthenticated', 'Sign in before opening the family workspace.');
+  const familyId = cleanFamilyId(request.data?.familyId);
+  const uid = request.auth.uid;
+  const email = normalizedEmail(request.auth.token?.email);
+  if (!email) throw new HttpsError('permission-denied', 'An email address is required.');
+
+  const db = getDatabase();
+  const familyRef = db.ref(`families/${familyId}`);
+  const memberRef = familyRef.child(`familyMembers/${uid}`);
+  const memberSnap = await memberRef.get();
+  let member = memberSnap.val();
+  let inviteKey = '';
+
+  if (member && member.active === false) {
+    throw new HttpsError('permission-denied', 'This family membership has been disabled by an administrator.');
+  }
+  if (!member?.active) {
+    const configuredAdminSnap = await familyRef.child('publicData/settings/template/adminEmail').get();
+    const legacyAdminSnap = configuredAdminSnap.exists() ? null : await familyRef.child('appData/settings/template/adminEmail').get();
+    const configuredAdminEmail = normalizedEmail(configuredAdminSnap.val() || legacyAdminSnap?.val());
+    if (configuredAdminEmail && email === configuredAdminEmail) {
+      member = { uid, email, name: String(request.auth.token?.name || 'Administrator'), role: 'Admin', active: true, joinedAt: Date.now(), approvedBy: 'secure-admin-bootstrap' };
+    } else {
+      const inviteCode = cleanInviteCode(request.data?.inviteCode);
+      const invitation = await findInvitation(familyId, request.data?.inviteId || '', inviteCode);
+      if (!invitation || normalizedEmail(invitation.value?.email) !== email) {
+        throw new HttpsError('permission-denied', 'This account is not on the approved family invitation.');
+      }
+      if (String(invitation.value?.status || '').toLowerCase() === 'revoked') {
+        throw new HttpsError('permission-denied', 'This invitation has been revoked.');
+      }
+      if (invitation.value?.uid && invitation.value.uid !== uid) {
+        throw new HttpsError('permission-denied', 'This invitation has already been accepted by another account.');
+      }
+      inviteKey = invitation.key;
+      member = {
+        uid,
+        email,
+        name: String(invitation.value?.name || request.auth.token?.name || 'Family member'),
+        role: cleanRole(invitation.value?.role),
+        active: true,
+        inviteId: inviteKey,
+        joinedAt: Date.now(),
+        approvedBy: 'family-invitation'
+      };
+    }
+    await memberRef.set(member);
+  }
+
+  if (normalizedEmail(member.email) !== email) throw new HttpsError('permission-denied', 'This member record belongs to a different email address.');
+  const role = cleanRole(member.role);
+  await applyFamilyClaims(uid, familyId, role);
+  if (inviteKey) {
+    await familyRef.child(`pendingInvites/${inviteKey}`).update({ status: 'Accepted', uid, acceptedAt: Date.now() });
+  }
+  return { active: true, role, familyId, refreshToken: true };
+});
 
 function targetUids(value) {
   if (Array.isArray(value)) return value.filter(Boolean).slice(0, MAX_TARGETS);
@@ -74,7 +199,7 @@ exports.sendQueuedFamilyNotification = onValueCreated(
           kind: item.kind || 'general',
           tripId: item.tripId || '',
           url: targetUrl,
-          deliveredBy: 'fcm-sender-10.0.5'
+          deliveredBy: 'fcm-sender-10.3.8'
         };
       }
       const tokenSnap = await db.ref(`families/${familyId}/pushTokens/${uid}`).get();
@@ -218,7 +343,7 @@ exports.queueSevenDayTripReminders = onSchedule(
             text: `${name} (${dates}) will be in 7 days.`,
             kind: 'trips',
             tripId: String(tripId),
-            url: `https://melonz1-beep.github.io/Our_family_adventures/index.html?v=10.0.5#trip/${encodeURIComponent(tripId)}`,
+            url: `https://melonz1-beep.github.io/Our_family_adventures/index.html?v=10.3.8#trip/${encodeURIComponent(tripId)}`,
             createdAt: Date.now(),
             reminderDate: targetDate
           };

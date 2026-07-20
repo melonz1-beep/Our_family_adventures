@@ -22,5 +22,10 @@ jobs:
           node --check scrapbook-studio-2.js
           node --check service-worker.js
           node --check firebase-messaging-sw.js
+          node --check Functions/index.js
+      - name: Validate configuration files
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('database.rules.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('firebase.json','utf8'))"
       - name: Run regression tests
         run: node --test tests/*.test.mjs

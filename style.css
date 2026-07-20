@@ -744,10 +744,14 @@ body:not(.scrapEditing) main#view{padding-bottom:calc(116px + env(safe-area-inse
 .scrapCanvas.chalkboard,.savedScrapCanvas.chalkboard{background:#050505!important;box-shadow:inset 0 0 45px #000!important}.scrapCanvas.chalkboard:after,.savedScrapCanvas.chalkboard:after{content:'Memories  ✧  Memories';position:absolute;left:7%;right:7%;top:5%;font:700 54px/1.2 cursive;color:#ff55d7;text-shadow:3px 3px #3cf,6px 6px #ffe65a;white-space:nowrap;opacity:.75;pointer-events:none}
 @media(max-width:600px){.photoFineTune label{grid-template-columns:1fr}.photoFineTune span{justify-self:end}}
 
-/* 10.3.7 joined scrapbook hub and repaired Memories previews */
+/* Scrapbook hub and repaired Memories previews */
 .scrapbookWelcome{padding:18px;margin-bottom:22px;border:1px solid var(--border,#718775);border-radius:18px;background:color-mix(in srgb,var(--card,#fff) 88%,var(--accent,#d9a39a) 12%)}
 .scrapbookWelcome h2,.studioPageRow h3{margin:0 0 6px}.scrapbookWelcome p,.studioPageRow p{margin:5px 0}
 .studioPageList{display:grid;gap:10px;margin:10px 0 22px}.studioPageRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px;border:1px solid var(--border,#718775);border-radius:16px;background:var(--card,#fff)}.studioPageRow small{opacity:.72}.studioPageRow button{min-width:132px}
 .emptyStudioList,.photoMissingMessage{padding:18px;border:1px dashed var(--border,#718775);border-radius:14px;text-align:center;opacity:.78}.memoryGrid .memoryCard{min-width:0}.memoryGrid .thumbGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:9px}.memoryGrid .photoThumb{min-width:0;padding:0;overflow:hidden}.memoryGrid .photoThumb img{display:block;width:100%;aspect-ratio:1;object-fit:cover}.memoryGrid .photoThumb.photoUnavailable{display:grid;place-items:center;min-height:100px;background:#eee}.memoryGrid .photoThumb.photoUnavailable img{display:none}
 .dark .scrapbookWelcome,.dark .studioPageRow{background:#161917;color:#f6e8e8;border-color:#617467}
 @media(max-width:560px){.studioPageRow{grid-template-columns:minmax(0,1fr)}.studioPageRow button{width:100%}}
+
+/* 10.3.8 visual scrapbook library */
+.studioPageRow{grid-template-columns:112px minmax(0,1fr) auto}.studioPageThumb{display:grid;grid-template-columns:repeat(3,1fr);width:112px;height:82px;overflow:hidden;border:1px solid var(--border,#718775);border-radius:12px;background:linear-gradient(135deg,#d6ece8,#ead8b9);position:relative}.studioPageThumb img{display:block;width:100%;height:100%;min-width:0;object-fit:cover}.studioPageThumb span{grid-column:1/-1;display:grid;place-items:center;font-size:38px}.studioPageThumb small{position:absolute;left:5px;right:5px;bottom:4px;overflow:hidden;padding:2px 5px;border-radius:5px;background:#111a;color:#fff;text-align:center;text-overflow:ellipsis;white-space:nowrap}.dark .studioPageThumb{background:linear-gradient(135deg,#25443d,#5a4834)}
+@media(max-width:560px){.studioPageRow{grid-template-columns:86px minmax(0,1fr)}.studioPageRow>button{grid-column:1/-1}.studioPageThumb{width:86px;height:70px}}
