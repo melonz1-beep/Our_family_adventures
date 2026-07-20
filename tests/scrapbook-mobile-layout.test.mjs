@@ -97,6 +97,28 @@ test('page naming, save draft, and finalization are explicit', () => {
   assert.match(studio, /Name this scrapbook before finalizing/);
 });
 
+test('saved pages are separate drafts that can be closed and reopened', () => {
+  assert.match(studio, /const DRAFT_INDEX_KEY=/);
+  assert.match(studio, /const DRAFT_PREFIX=/);
+  assert.match(studio, /localStorage\.setItem\(draftKey\(state\.id\),serialized\)/);
+  assert.match(studio, /Saved scrapbook pages/);
+  assert.match(studio, /function closePage\(\)/);
+  assert.match(studio, /function openDraft\(pageId\)/);
+  assert.match(studio, /id="ss2-close-page">Close Page/);
+  assert.match(studio, /id="ss2-mclose-page">Close/);
+});
+
+test('exports render a clean full-size clone instead of the scaled phone canvas', () => {
+  assert.doesNotMatch(studio, /html2canvas\(document\.querySelector\('#ss2-stage'\)/);
+  assert.match(studio, /source\.cloneNode\(true\)/);
+  assert.match(studio, /clone\.style\.transform='none'/);
+  assert.match(studio, /width:900,height:675,windowWidth:900,windowHeight:675/);
+  assert.match(studio, /canvas\.width!==1800\|\|canvas\.height!==1350/);
+  assert.match(studio, /data-export-format="jpeg"/);
+  assert.match(studio, /data-export-format="pdf"/);
+  assert.match(css, /\.ss2-export-host \.ss2-stage\{[^}]*transform:none!important/);
+});
+
 test('only one mobile panel can remain open', () => {
   assert.match(studio, /function closePanels\(\)/);
   assert.match(studio, /const panel=document\.querySelector\(b\.dataset\.panel\),wasOpen/);

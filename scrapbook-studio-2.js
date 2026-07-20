@@ -1,7 +1,10 @@
 (()=>{'use strict';
-const V='10.3.5';
+const V='10.3.6';
 const KEY='ofa-scrapbook-studio-2';
 const RECOVERY_KEY=`${KEY}-recovery`;
+const DRAFT_INDEX_KEY=`${KEY}-draft-index`;
+const ACTIVE_DRAFT_KEY=`${KEY}-active-draft`;
+const DRAFT_PREFIX=`${KEY}-draft:`;
 const ASSET_DB='ofa-scrapbook-assets';
 const ASSET_STORE='photos';
 const HISTORY_LIMIT=35;
@@ -125,17 +128,22 @@ const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function blank(){return {id:id(),title:'',status:'draft',theme:'Sea Glass',objects:[],updatedAt:Date.now(),owner:uid(),version:V}}
 function normalize(raw){const next=raw&&Array.isArray(raw.objects)?raw:blank();next.version=V;next.theme=THEMES[next.theme]?next.theme:'Sea Glass';next.status=next.status||'draft';if(next.title==='Untitled Scrapbook Page')next.title='';return next}
+function draftKey(pageId){return `${DRAFT_PREFIX}${pageId}`}
+function readDraftIndex(){try{const value=JSON.parse(localStorage.getItem(DRAFT_INDEX_KEY)||'[]');return Array.isArray(value)?value:[]}catch{return[]}}
+function updateDraftIndex(){const meta={id:state.id,title:String(state.title||''),theme:state.theme,status:state.status||'draft',updatedAt:state.updatedAt||Date.now(),photoCount:state.objects.filter(o=>o.type==='photo').length};const next=[meta,...readDraftIndex().filter(x=>x.id!==meta.id)].sort((a,b)=>Number(b.updatedAt)-Number(a.updatedAt));localStorage.setItem(DRAFT_INDEX_KEY,JSON.stringify(next))}
 function assetDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open(ASSET_DB,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(ASSET_STORE))request.result.createObjectStore(ASSET_STORE)};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
 async function assetPut(key,value){const db=await assetDb();return new Promise((resolve,reject)=>{const tx=db.transaction(ASSET_STORE,'readwrite');tx.objectStore(ASSET_STORE).put(value,key);tx.oncomplete=()=>{db.close();resolve(true)};tx.onerror=()=>{db.close();reject(tx.error)}})}
 async function assetGet(key){const db=await assetDb();return new Promise((resolve,reject)=>{const tx=db.transaction(ASSET_STORE,'readonly'),request=tx.objectStore(ASSET_STORE).get(key);request.onsuccess=()=>resolve(request.result||'');request.onerror=()=>reject(request.error);tx.oncomplete=()=>db.close()})}
 async function storePhotoAssets(){for(const o of state.objects){if(o.type!=='photo'||!o.src||String(o.src).startsWith('idb:'))continue;o.assetKey=o.assetKey||`${state.id}:${o.id}`;if(savedPhotoAssets.get(o.assetKey)===o.src)continue;await assetPut(o.assetKey,o.src);savedPhotoAssets.set(o.assetKey,o.src)}}
 function storageCopy(){const next=clone(state);next.objects.forEach(o=>{if(o.type==='photo'&&o.src){o.assetKey=o.assetKey||`${next.id}:${o.id}`;o.src=`idb:${o.assetKey}`}});return next}
 async function hydrateAssets(next){await Promise.all(next.objects.map(async o=>{if(o.type!=='photo'||!String(o.src).startsWith('idb:'))return;const key=o.assetKey||String(o.src).slice(4);o.assetKey=key;try{o.src=await assetGet(key);if(o.src)savedPhotoAssets.set(key,o.src)}catch(e){console.warn('Photo recovery',e);o.src=''}}));return next}
-async function load(){
+async function load(pageId=''){
  try{
-  const primary=JSON.parse(localStorage.getItem(KEY)||'null');
+  const activeId=pageId||localStorage.getItem(ACTIVE_DRAFT_KEY)||'';
+  const primary=JSON.parse((activeId&&localStorage.getItem(draftKey(activeId)))||localStorage.getItem(KEY)||'null');
   const recovery=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||'null');
-  const best=recovery&&(!primary||Number(recovery.updatedAt)>Number(primary.updatedAt))?recovery:primary;
+  const matchingRecovery=recovery&&(!primary||recovery.id===primary.id)?recovery:null;
+  const best=matchingRecovery&&(!primary||Number(matchingRecovery.updatedAt)>Number(primary.updatedAt))?matchingRecovery:primary;
   const next=normalize(best);
   lastLocalHash=hash(JSON.stringify(next));
   return await hydrateAssets(next);
@@ -161,7 +169,9 @@ async function persist({force=false,sync=true}={}){
  if(!force&&!dirty&&currentHash===lastLocalHash){setStatus('Saved');return true}
  try{
   if(!(await storageSafe(serialized)))throw new DOMException('Device storage is nearly full','QuotaExceededError');
-  localStorage.setItem(KEY,serialized);
+  localStorage.setItem(draftKey(state.id),serialized);
+  localStorage.setItem(ACTIVE_DRAFT_KEY,state.id);
+  updateDraftIndex();
   sessionStorage.setItem(RECOVERY_KEY,serialized);
   lastLocalHash=currentHash;dirty=false;setStatus('Saved');
   if(sync)queueFirebaseSync(serialized,currentHash);
@@ -232,7 +242,7 @@ function addText(){add('text',{text:'Double-tap to edit',fontSize:34,color:'#263
 function addSticker(text){add('sticker',{text,fontSize:70,w:100,h:100})}
 function render(){
  document.body.classList.add('ss2-open');document.querySelector('.ss2')?.remove();
- document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" placeholder="Untitled scrapbook — tap to name" aria-label="Page title"><span id="ss2-status">${state.status==='final'?'Finalized':'Draft saved'}</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button id="ss2-save">Save Draft</button><button id="ss2-finalize">${state.status==='final'?'Finalized ✓':'Finalize'}</button><button class="primary" id="ss2-export">PDF/JPEG</button><button class="ss2-mobiletool" data-panel=".ss2-left">＋ Add</button><button class="ss2-mobiletool" id="ss2-msave">Save</button><button class="ss2-mobiletool" id="ss2-mfinalize">Finalize</button><button class="ss2-mobiletool" data-panel=".ss2-right">☷ Edit</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><button class="ss2-panel-close" type="button" aria-label="Close add panel">×</button><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Professional scrapbook layouts</h3><p>Layered papers, stitching, ribbons, journaling details, and coordinated embellishments.</p><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><h3>Frames</h3><label class="ss2-check"><input id="ss2-frame-all" type="checkbox" ${frameAll?'checked':''}> Add frame to every photo</label><p>Or check photos in Edit to frame only those.</p><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({none:'▢',heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage-viewport"><div class="ss2-stage" id="ss2-stage"></div></div><div id="ss2-quickbar" class="ss2-quickbar"></div></main><aside class="ss2-panel ss2-right"><button class="ss2-panel-close" type="button" aria-label="Close edit panel">×</button><h3>Edit</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div><div id="ss2-notice" class="ss2-notice" role="status"></div></section>`);
+ document.body.insertAdjacentHTML('beforeend',`<section class="ss2"><div class="ss2-top"><button id="ss2-close">← App</button><h2>Scrapbook Studio 2.0</h2><input id="ss2-title" value="${esc(state.title)}" placeholder="Untitled scrapbook — tap to name" aria-label="Page title"><span id="ss2-status">${state.status==='final'?'Finalized':'Draft saved'}</span><button class="desktop" id="ss2-undo">Undo</button><button class="desktop" id="ss2-redo">Redo</button><button id="ss2-close-page">Close Page</button><button id="ss2-save">Save Draft</button><button id="ss2-finalize">${state.status==='final'?'Finalized ✓':'Finalize'}</button><button class="primary" id="ss2-export">Export</button><button class="ss2-mobiletool" data-panel=".ss2-left">＋ Add</button><button class="ss2-mobiletool" id="ss2-mclose-page">Close</button><button class="ss2-mobiletool" id="ss2-msave">Save</button><button class="ss2-mobiletool" id="ss2-mfinalize">Finalize</button><button class="ss2-mobiletool" data-panel=".ss2-right">☷ Edit</button></div><div class="ss2-body"><aside class="ss2-panel ss2-left"><button class="ss2-panel-close" type="button" aria-label="Close add panel">×</button><h3>Add</h3><div class="ss2-grid"><button id="ss2-photo">📷</button><button id="ss2-text">T</button><button id="ss2-emoji">😊</button></div><input hidden multiple type="file" accept="image/*" id="ss2-files"><h3>Professional scrapbook layouts</h3><p>Layered papers, stitching, ribbons, journaling details, and coordinated embellishments.</p><select id="ss2-theme">${Object.keys(THEMES).map(t=>`<option ${t===state.theme?'selected':''}>${t}</option>`).join('')}</select><h3>Frames</h3><label class="ss2-check"><input id="ss2-frame-all" type="checkbox" ${frameAll?'checked':''}> Add frame to every photo</label><p>Or check photos in Edit to frame only those.</p><div class="ss2-grid">${SHAPES.map(s=>`<button data-frame="${s}" title="${s}">${({none:'▢',heart:'❤️',star:'⭐',flower:'🌸',oval:'⭕',hexagon:'🔷',puzzle:'🧩',polaroid:'📷',shell:'🌊',beach:'🏖️',vintage:'📜'})[s]}</button>`).join('')}</div><div id="ss2-stickers">${Object.entries(STICKERS).map(([g,a])=>`<h3>${g}</h3><div class="ss2-grid">${a.map(s=>`<button data-sticker="${s}">${s}</button>`).join('')}</div>`).join('')}</div></aside><main class="ss2-stage-wrap"><div class="ss2-stage-viewport"><div class="ss2-stage" id="ss2-stage"></div></div><div id="ss2-quickbar" class="ss2-quickbar"></div></main><aside class="ss2-panel ss2-right"><button class="ss2-panel-close" type="button" aria-label="Close edit panel">×</button><h3>Edit</h3><div class="ss2-controls" id="ss2-controls"></div><h3>Layers</h3><div class="ss2-list" id="ss2-layers"></div></aside></div><section id="ss2-pages" class="ss2-pages" hidden><div class="ss2-pages-card"><header><div><h2>Saved scrapbook pages</h2><p>Open a draft or start a new page. Photos stay with each saved page on this device.</p></div><button id="ss2-pages-back" type="button" aria-label="Return to current page">×</button></header><div class="ss2-pages-actions"><button class="primary" id="ss2-new-page">＋ New Page</button><button id="ss2-pages-app">← Back to App</button></div><div id="ss2-draft-list" class="ss2-draft-list"></div></div></section><section id="ss2-export-menu" class="ss2-export-menu" hidden><div class="ss2-export-card"><h2>Export full page</h2><p>Your complete 900 × 675 scrapbook page will be exported without editor controls.</p><div><button class="primary" data-export-format="jpeg">Download JPEG</button><button class="primary" data-export-format="pdf">Download PDF</button><button id="ss2-export-cancel">Cancel</button></div></div></section><div id="ss2-notice" class="ss2-notice" role="status"></div></section>`);
  bind();renderStage();fit();updateUndoButtons();
 }
 function objectMarkup(o){
@@ -337,6 +347,18 @@ function fit(){
  st.style.transform=`scale(${s})`;st.dataset.scale=String(s);
 }
 function closePanels(){document.querySelectorAll('.ss2-panel.open').forEach(p=>p.classList.remove('open'))}
+function resetEditorState(){history=[];future=[];selected=null;multiSelected.clear();editAll=false;frameAll=false;photoEditMode=false}
+function renderDraftList(){
+ const list=document.querySelector('#ss2-draft-list');if(!list)return;
+ const drafts=readDraftIndex();
+ list.innerHTML=drafts.length?drafts.map(d=>`<article class="ss2-draft-row ${d.id===state.id?'current':''}"><div><h3>${esc(d.title||'Untitled scrapbook')}</h3><p>${Number(d.photoCount)||0} photo${Number(d.photoCount)===1?'':'s'} · ${d.status==='final'?'Finalized':'Draft'} · ${new Date(Number(d.updatedAt)||Date.now()).toLocaleString()}</p></div><button data-open-draft="${esc(d.id)}">${d.id===state.id?'Return':'Open'}</button></article>`).join(''):'<p class="ss2-no-drafts">No saved pages yet. Start a new page to begin.</p>';
+ list.querySelectorAll('[data-open-draft]').forEach(button=>button.onclick=()=>openDraft(button.dataset.openDraft));
+}
+function showDraftLibrary(){closePanels();renderDraftList();const pages=document.querySelector('#ss2-pages');if(pages)pages.hidden=false}
+function hideDraftLibrary(){const pages=document.querySelector('#ss2-pages');if(pages)pages.hidden=true}
+async function closePage(){const ok=await persist({force:true});if(!ok){notice('Page could not be closed until it is saved');return}showDraftLibrary();notice('Page closed and saved as a draft')}
+async function newPage(){await persist({force:true});state=blank();resetEditorState();await persist({force:true});render();notice('New scrapbook page opened')}
+async function openDraft(pageId){if(pageId===state.id){hideDraftLibrary();return}await persist({force:true});state=await load(pageId);resetEditorState();render();notice('Saved page opened')}
 function setFrames(targets,shape){if(!targets.length)return;snapshot();targets.forEach(o=>{o.shape=shape;if(shape==='none'){o.borderWidth=0;o.shadow=0;o.glow=0}else if(!Number(o.borderWidth)){o.borderWidth=6}});renderStage();scheduleSave()}
 function applyFrame(shape){
  const targets=frameTargets();if(!targets.length){alert('Select a photo, check photos in Edit, or turn on “Add frame to every photo.”');return}
@@ -350,6 +372,8 @@ function bind(){
  renderController?.abort();renderController=new AbortController();const {signal}=renderController;
  const on=(target,type,fn,options={})=>target?.addEventListener(type,fn,{...options,signal});
  on(document.querySelector('#ss2-close'),'click',close);
+ on(document.querySelector('#ss2-close-page'),'click',closePage);on(document.querySelector('#ss2-mclose-page'),'click',closePage);
+ on(document.querySelector('#ss2-pages-back'),'click',hideDraftLibrary);on(document.querySelector('#ss2-pages-app'),'click',close);on(document.querySelector('#ss2-new-page'),'click',newPage);
  on(document.querySelector('#ss2-title'),'focus',e=>e.target.select());
  on(document.querySelector('#ss2-title'),'input',e=>{state.title=e.target.value;scheduleSave()});
  on(document.querySelector('#ss2-undo'),'click',undo);on(document.querySelector('#ss2-redo'),'click',redo);on(document.querySelector('#ss2-mundo'),'click',undo);on(document.querySelector('#ss2-mredo'),'click',redo);
@@ -364,7 +388,9 @@ function bind(){
  on(document.querySelector('#ss2-theme'),'change',e=>{snapshot();state.theme=e.target.value;renderStage();scheduleSave();closePanels()});
  document.querySelectorAll('[data-panel]').forEach(b=>on(b,'click',()=>{const panel=document.querySelector(b.dataset.panel),wasOpen=panel?.classList.contains('open');closePanels();if(panel&&!wasOpen)panel.classList.add('open')}));
  document.querySelectorAll('.ss2-panel-close').forEach(b=>on(b,'click',closePanels));
- on(document.querySelector('#ss2-export'),'click',exportPage);
+ on(document.querySelector('#ss2-export'),'click',()=>{closePanels();document.querySelector('#ss2-export-menu').hidden=false});
+ on(document.querySelector('#ss2-export-cancel'),'click',()=>{document.querySelector('#ss2-export-menu').hidden=true});
+ document.querySelectorAll('[data-export-format]').forEach(button=>on(button,'click',()=>exportPage(button.dataset.exportFormat)));
 }
 async function handleFiles(e){
  const input=e.currentTarget;const files=[...input.files];const replaceId=input.dataset.replace||'';delete input.dataset.replace;input.value='';
@@ -372,12 +398,29 @@ async function handleFiles(e){
  if(replaceId){const target=state.objects.find(x=>x.id===replaceId);if(target){snapshot();target.src=await compressImage(files[0]);delete target.assetKey;target.name=files[0].name||target.name||'';target.shape=shape;selected=target.id;renderStage();scheduleSave()}return}
  for(const file of files)await addPhoto(file,shape);
 }
-async function exportPage(){
- const editor=document.querySelector('.ss2');editor?.classList.add('exporting');setStatus('Exporting…');
- try{const canvas=await html2canvas(document.querySelector('#ss2-stage'),{scale:2,useCORS:true,backgroundColor:null});const jpeg=canvas.toDataURL('image/jpeg',.92);const a=document.createElement('a');a.href=jpeg;a.download=(state.title||'scrapbook')+'-10.3.5.jpg';a.click();const {jsPDF}=window.jspdf||{};if(jsPDF){const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675]});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save((state.title||'scrapbook')+'-10.3.5.pdf')}}finally{editor?.classList.remove('exporting');setStatus('Saved')}
+function buildExportStage(){
+ const source=document.querySelector('#ss2-stage'),clone=source.cloneNode(true),host=document.createElement('div');
+ clone.id='ss2-export-stage';clone.style.transform='none';clone.style.left='0';clone.style.top='0';clone.style.width='900px';clone.style.height='675px';clone.style.boxShadow='none';clone.dataset.scale='1';
+ clone.querySelectorAll('.ss2-photo-number,.ss2-resize-handle,.ss2-delete-handle,.ss2-empty').forEach(el=>el.remove());
+ clone.querySelectorAll('.ss2-object').forEach(el=>el.classList.remove('selected','multi-selected'));
+ host.className='ss2-export-host';host.append(clone);document.body.append(host);return{host,clone};
+}
+async function waitForExportImages(clone){await Promise.all([...clone.querySelectorAll('img')].map(img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise(resolve=>{img.onload=resolve;img.onerror=resolve})))}
+function safeFilename(){return String(state.title||'scrapbook').trim().replace(/[\\/:*?"<>|]+/g,'-')||'scrapbook'}
+async function exportPage(format){
+ const menu=document.querySelector('#ss2-export-menu'),editor=document.querySelector('.ss2');if(menu)menu.hidden=true;editor?.classList.add('exporting');setStatus('Exporting full page…');
+ let host;
+ try{
+  const built=buildExportStage();host=built.host;await waitForExportImages(built.clone);
+  const canvas=await html2canvas(built.clone,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:900,height:675,windowWidth:900,windowHeight:675,scrollX:0,scrollY:0});
+  if(canvas.width!==1800||canvas.height!==1350)throw new Error(`Unexpected export size ${canvas.width}×${canvas.height}`);
+  const jpeg=canvas.toDataURL('image/jpeg',.94),name=safeFilename();
+  if(format==='jpeg'){const a=document.createElement('a');a.href=jpeg;a.download=`${name}-10.3.6.jpg`;a.click();notice('Full-page JPEG saved')}
+  else{const {jsPDF}=window.jspdf||{};if(!jsPDF)throw new Error('PDF library is unavailable');const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675],hotfixes:['px_scaling']});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save(`${name}-10.3.6.pdf`);notice('Full-page PDF saved')}
+ }catch(e){console.warn('Scrapbook export',e);notice('Export failed — please try again')}finally{host?.remove();editor?.classList.remove('exporting');setStatus('Saved')}
 }
 function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook'}
-async function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=await load();history=[];future=[];selected=null;multiSelected.clear();editAll=false;frameAll=false;photoEditMode=false;render()}
+async function open(){if(document.querySelector('.ss2')||!shouldOpen())return;closing=false;state=await load();resetEditorState();render()}
 async function close(){if(closing)return;closing=true;await persist({force:true});renderController?.abort();renderController=null;document.querySelector('.ss2')?.remove();document.body.classList.remove('ss2-open');if(location.hash.startsWith('#scrapbook'))location.hash='#home';closing=false}
 window.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
 window.visualViewport?.addEventListener('resize',()=>{if(document.querySelector('.ss2'))fit()},{passive:true});
