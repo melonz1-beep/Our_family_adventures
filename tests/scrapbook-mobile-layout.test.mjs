@@ -196,8 +196,8 @@ test('holiday artwork uses recognizable decorated trees and carved pumpkins', ()
   assert.match(studio, /fill='#211922'/);
 });
 
-test('all release entry points use version 10.3.9', () => {
-  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.9/);
+test('all release entry points use version 10.3.10', () => {
+  for (const source of [app, studio, worker, index]) assert.match(source, /10\.3\.10/);
   for (const source of [app, studio, worker, index]) assert.doesNotMatch(source, /10\.3\.8/);
   for (const source of [app, studio, worker, index]) assert.doesNotMatch(source, /10\.3\.6/);
 });
@@ -215,6 +215,11 @@ test('family data requires approved membership instead of any authenticated acco
   assert.match(storageRules, /request\.auth\.token\.familyMember == true/);
   assert.match(storageRules, /request\.auth\.token\.familyId == familyId/);
   assert.match(firestoreRules, /allow read, write: if false/);
+});
+
+test('callable functions use the regional compat instance instead of treating the region as an app', () => {
+  assert.equal((app.match(/firebase\\.app\\(\\)\\.functions\\('us-central1'\\)/g) || []).length, 4);
+  assert.doesNotMatch(app, /firebase\\.functions\\('us-central1'\\)/);
 });
 
 test('account creation is invitation-only and authorization is issued server-side', () => {

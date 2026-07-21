@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='10.3.9';
+const VERSION='10.3.10';
 const FCM_PUBLIC_VAPID_KEY='BDCdG1CygJGFfQ3SBnzgxPIWHqBQqH0fcZbHpZH4nXwM0Lc4H-b9ql1W4tiyFKXcTIaaD8nCacG6yxgdwN7PSS8';
 const SECURITY_RULES_VERSION='10.3.9-server-enforced-family-access';
 const DEFAULT_FAMILY='default-family';
@@ -73,7 +73,7 @@ async function queuePushNotification(targetUids,text,kind='trips',options={}){
       skipInAppFor:options.skipInAppFor||''
     };
     if(!firebase.functions)throw new Error('Secure notification service is unavailable');
-    const response=await firebase.functions('us-central1').httpsCallable('queueFamilyNotification')(payload);
+    const response=await firebase.app().functions('us-central1').httpsCallable('queueFamilyNotification')(payload);
     const queueId=response.data?.queueId;
     if(!queueId)throw new Error('Notification was not accepted by the secure queue');
     localStorage.setItem('ofa-last-queue-id',queueId);
@@ -232,7 +232,7 @@ async function authorizeCurrentUser(user){
   const inv=activeInvite||readStoredInvite(),payload={familyId:familyId(),inviteId:inv?.id||'',inviteCode:inv?.code||''};
   try{
     if(!firebase.functions)throw new Error('Secure family authorization is not available yet.');
-    const result=await firebase.functions('us-central1').httpsCallable('authorizeFamilyMember')(payload),access=result.data||{};
+    const result=await firebase.app().functions('us-central1').httpsCallable('authorizeFamilyMember')(payload),access=result.data||{};
     if(!access.active)throw new Error('Family access was not approved.');
     if(access.refreshToken)await user.getIdToken(true);
     return access;
@@ -339,7 +339,7 @@ function inviteUrl(inv){return inviteBaseUrl()+'&invite='+encodeURIComponent(inv
 function readStoredInvite(){try{return JSON.parse(localStorage.getItem('ofa-active-invite')||'null')}catch{return null}}
 async function loadInviteFromUrl(){
   const code=new URLSearchParams(location.search).get('invite');if(!code)return;
-  try{if(!window.firebase||!firebase.apps.length)initFirebase();if(!firebase.functions)throw new Error('Secure invitations are not available yet');const result=await firebase.functions('us-central1').httpsCallable('lookupFamilyInvite')({familyId:familyId(),inviteCode:code}),found=result.data;if(found){activeInvite={...found,code};localStorage.setItem('ofa-active-invite',JSON.stringify(activeInvite));location.hash='login';render();toast('Secure invitation found — verify your email to join')}else throw new Error('Invitation not found')}catch(e){console.warn('Invitation lookup failed',e);localStorage.removeItem('ofa-active-invite');activeInvite=null;location.hash='login';render();toast(e.message||'This invitation could not be verified')}
+  try{if(!window.firebase||!firebase.apps.length)initFirebase();if(!firebase.functions)throw new Error('Secure invitations are not available yet');const result=await firebase.app().functions('us-central1').httpsCallable('lookupFamilyInvite')({familyId:familyId(),inviteCode:code}),found=result.data;if(found){activeInvite={...found,code};localStorage.setItem('ofa-active-invite',JSON.stringify(activeInvite));location.hash='login';render();toast('Secure invitation found — verify your email to join')}else throw new Error('Invitation not found')}catch(e){console.warn('Invitation lookup failed',e);localStorage.removeItem('ofa-active-invite');activeInvite=null;location.hash='login';render();toast(e.message||'This invitation could not be verified')}
 }
 async function createAndSendInvite(){
   if(!adminIsUnlocked()){toast('Unlock Admin first');return}
@@ -845,7 +845,7 @@ function bringForward(){let o=window.selectedScrapObj;if(!o){toast('Tap an objec
 function selectedMsgPeople(){return [...document.querySelectorAll('input[name="msgPeople"]:checked')].map(i=>arr('people').find(p=>p.id===i.value)).filter(Boolean)}
 function sendGroupText(){let ps=selectedMsgPeople(),body=encodeURIComponent($('#msgBody')?.value||'');let nums=ps.map(p=>(p.phone||'').replace(/[^0-9+]/g,'')).filter(Boolean);if(!nums.length){toast('Select people with phone numbers');return}location.href=`sms:${nums.join(',')}?&body=${body}`}
 function sendGroupEmail(){let ps=selectedMsgPeople(),body=encodeURIComponent($('#msgBody')?.value||''),emails=ps.map(p=>p.email).filter(Boolean);if(!emails.length){toast('Select people with email addresses');return}location.href=`mailto:${emails.join(',')}?subject=${encodeURIComponent(appName())}&body=${body}`}
-async function updatePersonRole(personId,newRole){if(!adminIsUnlocked()){toast('Unlock Admin to change roles');return}if(locks().roles){toast('Role editing is locked by Admin');return}const allowed=['Family','Guest','Child','Admin'];if(!allowed.includes(newRole)){toast('Invalid role');return}const person=arr('people').find(p=>p.id===personId);if(!person)return;if(person.roleLocked){toast('Unlock this person’s role first');render();return}try{if(!firebase.functions)throw new Error('Secure role management is unavailable');const result=await firebase.functions('us-central1').httpsCallable('updateFamilyMemberRole')({familyId:familyId(),targetUid:linkedPersonUid(person),targetEmail:person.email||'',role:newRole});person.role=result.data?.role||newRole;person.roleUpdatedAt=Date.now();person.roleUpdatedBy=uid;arr('invites').forEach(i=>{if(normIdentity(i.email)===normIdentity(person.email))i.role=person.role});save();activity(`Changed ${person.name||person.email} role to ${person.role}`,'admin');toast(`Secure role updated to ${person.role}`);render()}catch(error){console.error(error);toast(error.message||'Role could not be updated')}}
+async function updatePersonRole(personId,newRole){if(!adminIsUnlocked()){toast('Unlock Admin to change roles');return}if(locks().roles){toast('Role editing is locked by Admin');return}const allowed=['Family','Guest','Child','Admin'];if(!allowed.includes(newRole)){toast('Invalid role');return}const person=arr('people').find(p=>p.id===personId);if(!person)return;if(person.roleLocked){toast('Unlock this person’s role first');render();return}try{if(!firebase.functions)throw new Error('Secure role management is unavailable');const result=await firebase.app().functions('us-central1').httpsCallable('updateFamilyMemberRole')({familyId:familyId(),targetUid:linkedPersonUid(person),targetEmail:person.email||'',role:newRole});person.role=result.data?.role||newRole;person.roleUpdatedAt=Date.now();person.roleUpdatedBy=uid;arr('invites').forEach(i=>{if(normIdentity(i.email)===normIdentity(person.email))i.role=person.role});save();activity(`Changed ${person.name||person.email} role to ${person.role}`,'admin');toast(`Secure role updated to ${person.role}`);render()}catch(error){console.error(error);toast(error.message||'Role could not be updated')}}
 function togglePersonRoleLock(personId){if(!adminIsUnlocked()){toast('Unlock Admin to manage role locks');return}const person=arr('people').find(p=>p.id===personId);if(!person)return;if(normIdentity(person.email)===adminEmail()&&person.roleLocked){person.roleLocked=false}else person.roleLocked=!person.roleLocked;person.roleLockUpdatedAt=Date.now();person.roleLockUpdatedBy=uid;save();activity(`${person.roleLocked?'Locked':'Unlocked'} ${person.name||person.email} role`,'admin');toast(person.roleLocked?'Role locked':'Role unlocked');render()}
 function setupWizardMarkup(){
   const c=templateConfig(),f=c.features||{},fc=window.firebaseConfig||{};
