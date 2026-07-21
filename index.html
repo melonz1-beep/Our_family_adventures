@@ -33,6 +33,7 @@
 <script src="./app.js?v=10.3.11.1"></script>
 <script src="./scrapbook-studio-2.js?v=10.3.11.1"></script>
 <script src="./scrapbook-studio-2-upgrades.js?v=10.3.11.1"></script>
+<script src="./version-10-3-11-hotfix.js?v=10.3.11.1"></script>
 <script>
 (function(){
   var RELEASE='10.3.11';
@@ -51,14 +52,7 @@
     }
     document.title='Our Family Adventures '+RELEASE;
   }
-  function enforceVersion(){
-    var status=document.getElementById('sync');
-    if(status && /Version 10\.3\.10/.test(status.textContent)) status.textContent=status.textContent.replace('10.3.10',RELEASE);
-    if(/10\.3\.10/.test(document.title)) document.title=document.title.replace('10.3.10',RELEASE);
-  }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
-  setInterval(enforceVersion,500);
-  if('serviceWorker' in navigator){navigator.serviceWorker.ready.then(function(reg){if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});reg.active&&reg.active.postMessage({type:'CLEAR_OLD_CACHES'});}).catch(function(){});}
 })();
 </script>
 </body></html>
