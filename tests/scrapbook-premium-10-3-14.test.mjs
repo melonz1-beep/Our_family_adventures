@@ -4,6 +4,7 @@ import { Script } from 'node:vm';
 import test from 'node:test';
 
 const premium = readFileSync(new URL('../scrapbook-premium-10-3-15.js', import.meta.url), 'utf8');
+const effectsFix = readFileSync(new URL('../scrapbook-premium-10-3-15-fixes.js', import.meta.url), 'utf8');
 const premiumCss = readFileSync(new URL('../scrapbook-premium-10-3-15.css', import.meta.url), 'utf8');
 const coreStudio = readFileSync(new URL('../scrapbook-studio-2.js', import.meta.url), 'utf8');
 const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -13,8 +14,9 @@ const themes = [
   'pet-memories-realistic.svg','wedding-romance-realistic.svg','happy-hour-realistic.svg','baby-keepsake-realistic.svg','winter-wonderland-realistic.svg','chalkboard-memories-realistic.svg','vintage-scroll-realistic.svg','warm-sand-realistic.svg','soft-paisley-realistic.svg','christmas-realistic.svg','halloween-realistic.svg','easter-realistic.svg','patriotic-realistic.svg','sea-glass-realistic.svg'
 ];
 
-test('10.3.15 premium scrapbook browser script parses', () => {
+test('10.3.15 premium scrapbook browser scripts parse', () => {
   assert.doesNotThrow(() => new Script(premium));
+  assert.doesNotThrow(() => new Script(effectsFix));
 });
 
 test('all requested realistic backgrounds exist with texture, depth, and release caching', () => {
@@ -40,6 +42,8 @@ test('editor menu follows title, backgrounds, frames, photos, text, and layouts'
   }
   assert.match(premium, /ss2-editor-flow/);
   assert.match(premiumCss, /ss2-flow-section/);
+  assert.match(effectsFix, /Apply this frame to every photo/);
+  assert.match(effectsFix, /input\.closest\('label'\)/);
 });
 
 test('dimensional scrapbook frames replace emoji-only frame choices', () => {
@@ -56,8 +60,12 @@ test('shadow and glow values persist and render outside the clipped photo frame'
   assert.match(coreStudio, /data-prop="glow"/);
   assert.match(premium, /setControl\('shadow',preset\.shadow\)/);
   assert.match(premium, /setControl\('glow',preset\.glow\)/);
-  assert.match(premium, /drop-shadow/);
-  assert.match(premium, /object\.style\.filter=filters\.join/);
+  assert.match(effectsFix, /values\[1\]/);
+  assert.match(effectsFix, /values\[2\]/);
+  assert.match(effectsFix, /actualShadow/);
+  assert.match(effectsFix, /actualGlow/);
+  assert.match(effectsFix, /drop-shadow/);
+  assert.match(effectsFix, /object\.style\.filter=next/);
   assert.match(premiumCss, /\.ss2-object\{overflow:visible!important\}/);
 });
 
@@ -74,13 +82,15 @@ test('draft and finalized deletion still uses the configured family and every st
 test('only the 10.3.15 premium layer is loaded', () => {
   assert.match(index, /scrapbook-premium-10-3-15\.css\?v=10\.3\.15/);
   assert.match(index, /scrapbook-premium-10-3-15\.js\?v=10\.3\.15/);
+  assert.match(index, /scrapbook-premium-10-3-15-fixes\.js\?v=10\.3\.15/);
   assert.doesNotMatch(index, /scrapbook-premium-10-3-14/);
   assert.doesNotMatch(index, /scrapbook-studio-2-professional-10-3-13\.js/);
   assert.doesNotMatch(index, /scrapbook-page-delete-10-3-13\.js/);
 });
 
 test('release version and PWA cache are consistently 10.3.15', () => {
-  for (const source of [premium,index,worker,manifest]) assert.match(source, /10\.3\.15/);
+  for (const source of [premium,effectsFix,index,worker,manifest]) assert.match(source, /10\.3\.15/);
   assert.match(worker, /const CACHE='ofa-10-3-15'/);
+  assert.match(worker, /scrapbook-premium-10-3-15-fixes\.js/);
   assert.match(manifest, /index\.html\?v=10\.3\.15/);
 });
