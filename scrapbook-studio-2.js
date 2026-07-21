@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const V='10.3.9';
+const V='10.3.10';
 const KEY='ofa-scrapbook-studio-2';
 const RECOVERY_KEY=`${KEY}-recovery`;
 const DRAFT_INDEX_KEY=`${KEY}-draft-index`;
@@ -489,8 +489,8 @@ async function exportPage(format){
   const canvas=await html2canvas(built.clone,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:900,height:675,windowWidth:900,windowHeight:675,scrollX:0,scrollY:0});
   if(canvas.width!==1800||canvas.height!==1350)throw new Error(`Unexpected export size ${canvas.width}×${canvas.height}`);
   const jpeg=canvas.toDataURL('image/jpeg',.94),name=safeFilename();
-  if(format==='jpeg'){const a=document.createElement('a');a.href=jpeg;a.download=`${name}-10.3.9.jpg`;a.click();notice('Full-page JPEG saved with all photos')}
-  else{const {jsPDF}=window.jspdf||{};if(!jsPDF)throw new Error('PDF library is unavailable');const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675],hotfixes:['px_scaling']});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save(`${name}-10.3.9.pdf`);notice('Full-page PDF saved with all photos')}
+  if(format==='jpeg'){const a=document.createElement('a');a.href=jpeg;a.download=`${name}-10.3.10.jpg`;a.click();notice('Full-page JPEG saved with all photos')}
+  else{const {jsPDF}=window.jspdf||{};if(!jsPDF)throw new Error('PDF library is unavailable');const pdf=new jsPDF({orientation:'landscape',unit:'px',format:[900,675],hotfixes:['px_scaling']});pdf.addImage(jpeg,'JPEG',0,0,900,675);pdf.save(`${name}-10.3.10.pdf`);notice('Full-page PDF saved with all photos')}
  }catch(e){console.warn('Scrapbook export',e);notice('Export stopped because a photo could not be embedded — reconnect and try again')}finally{host?.remove();editor?.classList.remove('exporting');setStatus('Saved')}
 }
 function shouldOpen(){return location.hash.replace(/^#/,'').split('/')[0]==='scrapbook-editor'}
