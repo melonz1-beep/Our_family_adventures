@@ -218,8 +218,8 @@ test('family data requires approved membership instead of any authenticated acco
 });
 
 test('callable functions use the regional compat instance instead of treating the region as an app', () => {
-  assert.equal((app.match(/firebase\\.app\\(\\)\\.functions\\('us-central1'\\)/g) || []).length, 4);
-  assert.doesNotMatch(app, /firebase\\.functions\\('us-central1'\\)/);
+  assert.equal((app.match(/firebase\.app\(\)\.functions\('us-central1'\)/g) || []).length, 4);
+  assert.doesNotMatch(app, /firebase\.functions\('us-central1'\)/);
 });
 
 test('account creation is invitation-only and authorization is issued server-side', () => {
