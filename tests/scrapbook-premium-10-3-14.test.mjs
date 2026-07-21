@@ -5,6 +5,7 @@ import test from 'node:test';
 
 const premium = readFileSync(new URL('../scrapbook-premium-10-3-15.js', import.meta.url), 'utf8');
 const effectsFix = readFileSync(new URL('../scrapbook-premium-10-3-15-fixes.js', import.meta.url), 'utf8');
+const scenes = readFileSync(new URL('../scrapbook-scenes-10-3-16.js', import.meta.url), 'utf8');
 const premiumCss = readFileSync(new URL('../scrapbook-premium-10-3-15.css', import.meta.url), 'utf8');
 const coreStudio = readFileSync(new URL('../scrapbook-studio-2.js', import.meta.url), 'utf8');
 const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -14,12 +15,13 @@ const themes = [
   'pet-memories-realistic.svg','wedding-romance-realistic.svg','happy-hour-realistic.svg','baby-keepsake-realistic.svg','winter-wonderland-realistic.svg','chalkboard-memories-realistic.svg','vintage-scroll-realistic.svg','warm-sand-realistic.svg','soft-paisley-realistic.svg','christmas-realistic.svg','halloween-realistic.svg','easter-realistic.svg','patriotic-realistic.svg','sea-glass-realistic.svg'
 ];
 
-test('10.3.15 premium scrapbook browser scripts parse', () => {
+test('premium scrapbook browser layers parse', () => {
   assert.doesNotThrow(() => new Script(premium));
   assert.doesNotThrow(() => new Script(effectsFix));
+  assert.doesNotThrow(() => new Script(scenes));
 });
 
-test('all requested realistic backgrounds exist with texture, depth, and release caching', () => {
+test('previous realistic background assets remain available as fallbacks', () => {
   for (const file of themes) {
     const url = new URL(`../assets/scrapbook-themes/${file}`, import.meta.url);
     assert.ok(existsSync(url), `${file} is missing`);
@@ -28,8 +30,8 @@ test('all requested realistic backgrounds exist with texture, depth, and release
     assert.ok(svg.length > 1800, `${file} needs more detailed artwork`);
     assert.match(svg, /(?:linearGradient|radialGradient)/, `${file} needs shaded materials`);
     assert.match(svg, /filter/, `${file} needs texture, lighting, or depth`);
-    assert.match(worker, new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+  assert.match(worker, /scrapbook-scenes-10-3-16\.js/);
 });
 
 test('editor menu follows title, backgrounds, frames, photos, text, and layouts', () => {
@@ -79,18 +81,20 @@ test('draft and finalized deletion still uses the configured family and every st
   assert.match(premium, /ofa-scrapbook-delete-queue/);
 });
 
-test('only the 10.3.15 premium layer is loaded', () => {
-  assert.match(index, /scrapbook-premium-10-3-15\.css\?v=10\.3\.15/);
-  assert.match(index, /scrapbook-premium-10-3-15\.js\?v=10\.3\.15/);
-  assert.match(index, /scrapbook-premium-10-3-15-fixes\.js\?v=10\.3\.15/);
+test('10.3.16 loads the premium frame layer followed by the scene-safe layer', () => {
+  assert.match(index, /scrapbook-premium-10-3-15\.css\?v=10\.3\.16/);
+  assert.match(index, /scrapbook-premium-10-3-15\.js\?v=10\.3\.16/);
+  assert.match(index, /scrapbook-premium-10-3-15-fixes\.js\?v=10\.3\.16/);
+  assert.match(index, /scrapbook-scenes-10-3-16\.js\?v=10\.3\.16/);
+  assert.ok(index.indexOf('scrapbook-scenes-10-3-16.js') > index.indexOf('scrapbook-premium-10-3-15-fixes.js'));
   assert.doesNotMatch(index, /scrapbook-premium-10-3-14/);
   assert.doesNotMatch(index, /scrapbook-studio-2-professional-10-3-13\.js/);
   assert.doesNotMatch(index, /scrapbook-page-delete-10-3-13\.js/);
 });
 
-test('release version and PWA cache are consistently 10.3.15', () => {
-  for (const source of [premium,effectsFix,index,worker,manifest]) assert.match(source, /10\.3\.15/);
-  assert.match(worker, /const CACHE='ofa-10-3-15'/);
-  assert.match(worker, /scrapbook-premium-10-3-15-fixes\.js/);
-  assert.match(manifest, /index\.html\?v=10\.3\.15/);
+test('release version and PWA cache are consistently 10.3.16', () => {
+  for (const source of [scenes,index,worker,manifest]) assert.match(source, /10\.3\.16/);
+  assert.match(worker, /const CACHE='ofa-10-3-16'/);
+  assert.match(worker, /scrapbook-scenes-10-3-16\.js/);
+  assert.match(manifest, /index\.html\?v=10\.3\.16/);
 });
