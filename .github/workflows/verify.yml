@@ -20,6 +20,8 @@ jobs:
         run: |
           node --check app.js
           node --check scrapbook-studio-2.js
+          node --check scrapbook-premium-10-3-14.js
+          node --check version-10-3-14.js
           node --check service-worker.js
           node --check firebase-messaging-sw.js
           node --check Functions/index.js
@@ -28,4 +30,17 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync('database.rules.json','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('firebase.json','utf8'))"
       - name: Run regression tests
-        run: node --test tests/*.test.mjs
+        id: regression
+        continue-on-error: true
+        run: node --test tests/*.test.mjs > test-output.txt 2>&1
+      - name: Upload regression output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-output
+          path: test-output.txt
+      - name: Enforce regression result
+        if: steps.regression.outcome == 'failure'
+        run: |
+          cat test-output.txt
+          exit 1
