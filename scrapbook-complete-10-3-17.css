@@ -1,0 +1,39 @@
+/* Our Family Adventures 10.3.17 complete scrapbook repair */
+.ss2-frame{overflow:hidden!important;position:absolute!important;isolation:isolate!important}
+.ss2-object{overflow:visible!important}
+.ss2-frame[data-shape=heart],.ss2-frame[data-shape=flower],.ss2-frame[data-shape=star],.ss2-frame[data-shape=shell],.ss2-frame[data-shape=beach],.ss2-frame[data-shape=puzzle]{clip-path:none!important;border-radius:0!important}
+.ss2-frame[data-shape=heart]{background:linear-gradient(145deg,#f8e8e9,#c98d96)!important;padding:12px!important}
+.ss2-frame[data-shape=flower]{background:linear-gradient(145deg,#f8ecea,#cda9ad)!important;padding:12px!important}
+.ss2-frame[data-shape=star]{background:linear-gradient(145deg,#fff3b4,#c28a34)!important;padding:11px!important}
+.ss2-frame[data-shape=puzzle]{background:linear-gradient(145deg,#d7b990,#9a744b)!important;padding:13px!important}
+.ss2-frame[data-shape=shell]{background:linear-gradient(145deg,#f3eee0,#b8d8d0)!important;padding:13px!important}
+.ss2-frame[data-shape=beach]{background:linear-gradient(145deg,#f2dfb4,#c79b62)!important;padding:14px!important}
+.ss2-frame.ss2-shell-real:after{content:"";position:absolute;inset:8% 12%;z-index:4;pointer-events:none;background:repeating-radial-gradient(ellipse at 50% 100%,transparent 0 11%,#8b776144 12% 13%,transparent 14% 22%);opacity:.8}
+.ss2-frame.ss2-beach-real:after{content:"";position:absolute;inset:6px;z-index:4;pointer-events:none;border:4px double #fff7dc;border-radius:18px;background:radial-gradient(circle at 9% 12%,#fff5 0 5px,transparent 6px),radial-gradient(circle at 91% 88%,#fff5 0 6px,transparent 7px)}
+.ss2-frame img{display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;object-position:center!important}
+.ss2-move-handle{position:absolute!important;left:-21px!important;bottom:-21px!important;z-index:12!important;width:42px!important;height:42px!important;min-height:42px!important;padding:0!important;border:4px solid #fff!important;border-radius:50%!important;background:#26765d!important;color:#fff!important;box-shadow:0 3px 10px #0008!important;touch-action:none!important;cursor:grab!important}
+.ss2-move-handle:before{content:"✥";font-size:24px;font-weight:900;line-height:1}
+.ss2-move-handle:active{cursor:grabbing!important}
+.ss2-text[data-text-shape=thought]{overflow:visible!important;border:3px solid currentColor!important;border-radius:48% 48% 46% 46%/56% 56% 44% 44%!important;padding:18px 22px!important;box-shadow:0 6px 14px #0002}
+.ss2-text[data-text-shape=thought]:before,.ss2-text[data-text-shape=thought]:after{content:"";position:absolute;background:inherit;border:3px solid currentColor;border-radius:50%;z-index:-1}
+.ss2-text[data-text-shape=thought]:before{width:24px;height:24px;left:22px;bottom:-18px}
+.ss2-text[data-text-shape=thought]:after{width:12px;height:12px;left:7px;bottom:-31px}
+.ss2-text[data-text-shape=label]{border:3px solid currentColor!important;border-radius:8px!important;clip-path:polygon(0 10%,82% 10%,100% 50%,82% 90%,0 90%)!important;padding:12px 52px 12px 18px!important;box-shadow:5px 6px 0 #0002}
+.ss2-text[data-text-shape=label]:after{content:"";position:absolute;right:16px;top:50%;width:13px;height:13px;border:3px solid currentColor;border-radius:50%;background:#fff8;transform:translateY(-50%)}
+.ss2-text[data-text-shape=caption]{border:2px solid currentColor!important;border-radius:3px!important;clip-path:polygon(0 0,92% 0,100% 30%,100% 100%,0 100%)!important;padding:16px 30px 12px 18px!important;background-image:linear-gradient(transparent 0 30%,#ffffff38 30% 34%,transparent 34%)!important;box-shadow:6px 7px 0 #0002}
+.ss2-text[data-text-shape=caption]:after{content:"";position:absolute;right:0;top:0;width:8%;height:30%;background:#0001;border-left:2px solid currentColor;border-bottom:2px solid currentColor}
+.ss2-layer-row{grid-template-columns:minmax(0,1fr) auto auto!important}
+.ss2-layer-actions{display:grid;grid-template-columns:repeat(2,34px);gap:4px;align-content:center}
+.ss2-layer-actions button{min-height:32px!important;width:34px!important;padding:0!important;font-size:15px!important;font-weight:850!important}
+.ss2-extra-stickers button{font-size:23px!important}
+.ss2-controls label:has([data-prop=shadow]),.ss2-controls label:has([data-prop=glow]){border:2px solid #d7c7b3!important;background:#fff8ed!important}
+.ss2-controls label:has([data-prop=shadow]):before{content:"Visible drop shadow";font-size:10px;color:#6b5b4c}
+.ss2-controls label:has([data-prop=glow]):before{content:"Visible outer glow";font-size:10px;color:#6b5b4c}
+.ss2-export-host{width:900px!important;height:675px!important;overflow:hidden!important}
+.ss2-export-host .ss2-stage{transform:none!important;width:900px!important;height:675px!important}
+@media(max-width:900px){
+ .ss2-move-handle{left:-18px!important;bottom:-18px!important;width:38px!important;height:38px!important;min-height:38px!important}
+ .ss2-layer-row{grid-template-columns:minmax(0,1fr) auto!important}
+ .ss2-layer-actions{grid-column:1/-1;grid-template-columns:repeat(4,1fr)}
+ .ss2-layer-actions button{width:auto!important}
+}
