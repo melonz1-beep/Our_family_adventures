@@ -1,0 +1,18 @@
+/* Our Family Adventures 10.3.14 premium scrapbook themes and reliable page deletion */
+.ss2-stage{background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;background-color:#e8e0d6!important}
+.ss2-draft-preview,.studioPageThumb{background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important;overflow:hidden!important}
+.ss2-draft-preview>span,.studioPageThumb>span,.studioPageThumb>small{position:relative;z-index:2;text-shadow:0 1px 4px #0008}
+.ss2-delete-page,.studio-delete-page,.ss2-delete-current{background:#7d3131!important;color:#fff!important;border:1px solid #cf8585!important;font-weight:800!important;box-shadow:0 5px 14px #0003!important}
+.ss2-delete-page:hover,.studio-delete-page:hover,.ss2-delete-current:hover{background:#9a3f3f!important}
+.ss2-delete-page,.studio-delete-page{min-width:82px;white-space:nowrap}
+.ss2-draft-row{grid-template-columns:minmax(88px,120px) minmax(0,1fr) auto auto!important;gap:10px!important;align-items:center!important}
+.studioPageRow{display:grid!important;grid-template-columns:minmax(100px,145px) minmax(0,1fr) auto auto!important;gap:12px!important;align-items:center!important}
+.ss2-top .ss2-delete-current{white-space:nowrap}
+.scrapbook-delete-warning{font-size:.82rem;opacity:.78}
+@media(max-width:900px){
+ .ss2-draft-row,.studioPageRow{grid-template-columns:88px minmax(0,1fr)!important}
+ .ss2-draft-row>[data-open-draft],.ss2-draft-row>.ss2-delete-page,.studioPageRow>button{grid-row:auto;margin-top:4px}
+ .ss2-draft-row>[data-open-draft],.studioPageRow>button:not(.studio-delete-page){grid-column:1}
+ .ss2-draft-row>.ss2-delete-page,.studioPageRow>.studio-delete-page{grid-column:2}
+ .ss2-top .ss2-delete-current{order:99;flex:1 0 calc(50% - 8px)}
+}
