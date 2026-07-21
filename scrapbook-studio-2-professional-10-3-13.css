@@ -1,5 +1,17 @@
-/* Scrapbook Studio 10.3.13 professional theme additions */
-.ss2-draft-row{grid-template-columns:auto 1fr auto auto!important;gap:10px!important}
-.ss2-delete-page{background:#6f2f35!important;color:#fff!important;border-color:#9a565d!important;font-weight:800!important}
-.ss2-delete-page:hover,.ss2-delete-page:focus{background:#8b3b43!important}
-@media(max-width:700px){.ss2-draft-row{grid-template-columns:78px 1fr!important}.ss2-draft-row>[data-open-draft],.ss2-draft-row>.ss2-delete-page{grid-row:2}.ss2-draft-row>[data-open-draft]{grid-column:1}.ss2-draft-row>.ss2-delete-page{grid-column:2}}
+/* Scrapbook Studio 10.3.13 professional artwork and page deletion */
+.ss2-delete-page,.ss2-delete-current{background:#7d3131!important;color:#fff!important;border-color:#b96b6b!important;font-weight:800!important}
+.ss2-delete-page{min-width:78px}
+.ss2-draft-row{grid-template-columns:minmax(88px,120px) minmax(0,1fr) auto auto!important;gap:10px!important;align-items:center!important}
+.ss2-draft-row .ss2-delete-page{align-self:center}
+.ss2-top .ss2-delete-current{white-space:nowrap}
+.ss2-stage{background-repeat:no-repeat!important;background-size:cover!important;background-position:center!important}
+.ss2-flow-section{background:rgba(255,255,255,.06);border:1px solid rgba(180,196,187,.34);border-radius:16px;padding:12px;margin:10px 0}
+.ss2-flow-section h3{display:flex;align-items:center;gap:9px;margin:0 0 10px}
+.ss2-flow-section h3 b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#d9a39a;color:#241c1c}
+@media(max-width:900px){
+ .ss2-draft-row{grid-template-columns:84px minmax(0,1fr)!important}
+ .ss2-draft-row>[data-open-draft],.ss2-draft-row>.ss2-delete-page{grid-row:2;margin-top:4px}
+ .ss2-draft-row>[data-open-draft]{grid-column:1}
+ .ss2-draft-row>.ss2-delete-page{grid-column:2}
+ .ss2-top .ss2-delete-current{order:99;flex:1 0 calc(50% - 8px)}
+}
