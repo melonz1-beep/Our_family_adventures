@@ -1,0 +1,3 @@
+(()=>{'use strict';
+const VERSION='10.3.11';
+const svg=(body,paper='#efe9df')=>`url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 675'><defs><filter id='grain'><feTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .31 0 0 0 0 .27 0 0 0 .11 0'/></filter><linearGradient id='paper' x1='0' y1='0' x2='1'
