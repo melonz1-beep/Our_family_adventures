@@ -1,0 +1,15 @@
+.mediaTileTextFixed{min-width:0;overflow:hidden}
+#view .mediaGrid .mediaTileTextFixed>b,#view .mediaGrid .mediaTileTextFixed>small{display:block;width:100%;min-width:0}
+#view .mediaGrid .mediaTileTextFixed>b{margin-top:8px;line-height:1.25;overflow-wrap:anywhere;word-break:break-word}
+#view .mediaGrid .mediaTileTextFixed>small{margin-top:4px;line-height:1.35;white-space:normal}
+#view .mediaGrid .mediaTileTextFixed .mediaActions{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:12px}
+#view .mediaGrid .mediaTileTextFixed .mediaActions>*{flex:1 1 120px;min-width:0;text-align:center}
+.mediaDeletePhoto{white-space:normal}
+.mediaEmojiLibrary{width:100%;border:1px solid rgba(185,120,120,.28);border-radius:14px;background:rgba(255,255,255,.55);overflow:hidden}
+.mediaEmojiLibrary>summary{cursor:pointer;padding:12px 14px;font-weight:800;list-style-position:inside}
+.mediaEmojiLibraryScroll{max-height:360px;overflow:auto;padding:0 12px 14px}
+.mediaEmojiGroup{margin:12px 0}.mediaEmojiGroup h4{margin:0 0 8px;font-size:.95rem}
+.mediaEmojiGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:7px}
+.mediaEmojiGrid button{display:grid;place-items:center;min-width:42px;min-height:42px;padding:5px;font-size:1.35rem;line-height:1;border-radius:10px}
+.dark .mediaEmojiLibrary{background:rgba(25,23,22,.82);border-color:rgba(217,163,154,.25)}
+@media(max-width:680px){#view .mediaGrid .mediaTileTextFixed .mediaActions{flex-direction:column}#view .mediaGrid .mediaTileTextFixed .mediaActions>*{flex:0 0 auto;width:100%}.mediaEmojiLibraryScroll{max-height:320px}.mediaEmojiGrid{grid-template-columns:repeat(6,minmax(0,1fr))}.mediaEmojiGrid button{min-width:0;width:100%}}
