@@ -19,6 +19,20 @@ test('photo journal attaches captions and emojis to existing media',()=>{
   assert.match(js,/collections\/media/);
   assert.match(js,/firebase\.database\(\)\.ref\(path\(d,p\)\)\.update/);
 });
+test('photo selection uses visible thumbnails instead of a text-only dropdown',()=>{
+  assert.match(js,/mediaJournalPicker/);
+  assert.match(js,/data-pick/);
+  assert.match(js,/Tap a photo thumbnail/);
+  assert.match(css,/mediaJournalPick img/);
+  assert.match(css,/object-fit:cover/);
+});
+test('signed-in invited members receive full-size jpg downloads',()=>{
+  assert.match(js,/firebase\?\.auth\?\.\(\)\.currentUser/);
+  assert.match(js,/Download JPG/);
+  assert.match(js,/canvas\.width=w;canvas\.height=h/);
+  assert.match(js,/image\/jpeg',\.98/);
+  assert.match(js,/original full resolution \(up to 20 MB each\)/);
+});
 test('journal layout is responsive and has dark mode support',()=>{
   assert.match(css,/mediaJournalComposer/);
   assert.match(css,/mediaJournalEntry/);
