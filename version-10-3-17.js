@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const RELEASE='10.3.17',DATA_KEY='ofa-9-data',JOURNAL_KEY='ofa-media-journal-v1';
+const RELEASE='10.3.18',DATA_KEY='ofa-9-data',JOURNAL_KEY='ofa-media-journal-v1';
 let correcting=false,mediaDeleteBusy=false,mediaDeleteObserver=null;
 function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')||fallback}catch{return fallback}}
 function writeJson(key,value){localStorage.setItem(key,JSON.stringify(value))}
@@ -22,5 +22,5 @@ async function deleteMediaPhoto(itemId){if(mediaDeleteBusy)return;const data=rea
 function enhanceMediaDeletes(){if(!window.app||!document.body)return;window.app.deleteMediaPhoto=deleteMediaPhoto;const card=[...document.querySelectorAll('#view .card')].find(node=>node.querySelector(':scope > h2')?.textContent.trim()==='Media Library');if(!card)return;const data=readJson(DATA_KEY,{}),rows=Array.isArray(data.media)?data.media:[];card.querySelectorAll('.mediaGrid .mediaTile').forEach(tile=>{if(tile.querySelector('[data-ofa-photo-delete]'))return;const image=tile.querySelector('.photoThumb img'),src=image?.src||image?.getAttribute('src')||'',item=rows.find(row=>row?.id&&row?.url&&sameUrl(row.url,src));if(!item||!canDelete(item))return;const actions=tile.querySelector('.mediaActions')||tile;const button=document.createElement('button');button.type='button';button.className='danger';button.dataset.ofaPhotoDelete=item.id;button.textContent='Delete Photo';button.setAttribute('aria-label',`Delete ${item.name||'photo'}`);button.onclick=()=>deleteMediaPhoto(item.id);actions.appendChild(button)})}
 function start(){setTitle();setStoredVersion();const title=document.querySelector('title');if(title){const observer=new MutationObserver(setTitle);observer.observe(title,{childList:true,characterData:true,subtree:true});window.OFAVersionTitleGuard=observer}window.OFAVersion=RELEASE;enhanceMediaDeletes();if(document.body){mediaDeleteObserver=new MutationObserver(()=>queueMicrotask(enhanceMediaDeletes));mediaDeleteObserver.observe(document.body,{childList:true,subtree:true});window.OFAMediaDeleteObserver=mediaDeleteObserver}window.addEventListener('hashchange',()=>setTimeout(enhanceMediaDeletes,0))}
 if('serviceWorker'in navigator)navigator.serviceWorker.getRegistrations().then(rows=>rows.forEach(registration=>{registration.update().catch(()=>{});registration.waiting?.postMessage({type:'SKIP_WAITING'});registration.active?.postMessage({type:'CLEAR_OLD_CACHES'})})).catch(()=>{});
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true}):start();
 })();
