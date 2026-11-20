@@ -40,6 +40,10 @@ jobs:
       - name: Audit Cloud Functions dependencies
         run: npm audit --audit-level=low
         working-directory: Functions
+      - name: Smoke test Cloud Functions exports
+        run: |
+          node -e "const f=require('./index.js'); const expected=['authorizeFamilyMember','lookupFamilyInvite','queueFamilyNotification','queueSevenDayTripReminders','sendQueuedFamilyNotification','updateFamilyMemberRole']; const missing=expected.filter(name=>!f[name]); if(missing.length){console.error('Missing exports:',missing.join(', ')); process.exit(1)}; console.log('Loaded all expected Functions exports')"
+        working-directory: Functions
       - name: Set up Java for Firebase emulators
         uses: actions/setup-java@v4
         with:
