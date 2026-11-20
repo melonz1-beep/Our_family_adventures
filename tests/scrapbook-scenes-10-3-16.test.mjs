@@ -42,8 +42,8 @@ test('scrapbook module and app shell release versions are consistent',()=>{
  assert.match(complete,/RELEASE='10\.3\.17'/);
  for(const source of [index,worker,manifest])assert.match(source,/10\.3\.18/);
  assert.match(index,/scrapbook-scenes-10-3-16\.js\?v=10\.3\.18/);
- assert.match(index,/scrapbook-complete-10-3-17\.js\?v=10\.3\.17/);
+ assert.match(index,/scrapbook-complete-10-3-17\.js\?v=10\.3\.18/);
  assert.match(worker,/const CACHE='ofa-10-3-18'/);
- assert.match(worker,/scrapbook-complete-10-3-17\.js\?v=10\.3\.17/);
- assert.match(manifest,/index\.html\?v=10\.3\.17/);
+ assert.match(worker,/scrapbook-complete-10-3-17\.js\?v=10\.3\.18/);
+ assert.match(manifest,/index\.html\?v=10\.3\.18/);
 });
