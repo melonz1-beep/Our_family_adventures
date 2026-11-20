@@ -34,6 +34,23 @@ jobs:
         run: |
           node -e "JSON.parse(require('fs').readFileSync('database.rules.json','utf8'))"
           node -e "JSON.parse(require('fs').readFileSync('firebase.json','utf8'))"
+      - name: Install Cloud Functions dependencies
+        run: npm ci --include=optional
+        working-directory: Functions
+      - name: Audit Cloud Functions dependencies
+        run: npm audit --audit-level=low
+        working-directory: Functions
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install security-rule test dependencies
+        run: npm ci
+        working-directory: tests/rules
+      - name: Test Firebase security rules in emulators
+        run: npm run test:emulator
+        working-directory: tests/rules
       - name: Run regression tests
         id: regression
         continue-on-error: true
