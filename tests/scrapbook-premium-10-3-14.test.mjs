@@ -75,21 +75,22 @@ test('draft and finalized deletion still uses the configured family and every st
  assert.match(premium, /ofa-scrapbook-delete-queue/);
 });
 
-test('10.3.17 loads premium, scene-safe, and complete layers in order', () => {
- assert.match(index, /scrapbook-premium-10-3-15\.css\?v=10\.3\.17/);
- assert.match(index, /scrapbook-complete-10-3-17\.css\?v=10\.3\.17/);
- assert.match(index, /scrapbook-premium-10-3-15\.js\?v=10\.3\.17/);
- assert.match(index, /scrapbook-scenes-10-3-16\.js\?v=10\.3\.17/);
- assert.match(index, /scrapbook-complete-10-3-17\.js\?v=10\.3\.17/);
+test('10.3.18 loads premium, scene-safe, and complete layers in order', () => {
+ assert.match(index, /scrapbook-premium-10-3-15\.css\?v=10\.3\.18/);
+ assert.match(index, /scrapbook-complete-10-3-17\.css\?v=10\.3\.18/);
+ assert.match(index, /scrapbook-premium-10-3-15\.js\?v=10\.3\.18/);
+ assert.match(index, /scrapbook-scenes-10-3-16\.js\?v=10\.3\.18/);
+ assert.match(index, /scrapbook-complete-10-3-17\.js\?v=10\.3\.18/);
  assert.ok(index.indexOf('scrapbook-complete-10-3-17.js') > index.indexOf('scrapbook-scenes-10-3-16.js'));
  assert.doesNotMatch(index, /scrapbook-premium-10-3-14/);
  assert.doesNotMatch(index, /scrapbook-studio-2-professional-10-3-13\.js/);
  assert.doesNotMatch(index, /scrapbook-page-delete-10-3-13\.js/);
 });
 
-test('release version and PWA cache are consistently 10.3.17', () => {
- for (const source of [complete,index,worker,manifest]) assert.match(source, /10\.3\.17/);
- assert.match(worker, /const CACHE='ofa-10-3-17'/);
+test('scrapbook module and app shell release versions are consistent', () => {
+ assert.match(complete, /RELEASE='10\.3\.17'/);
+ for (const source of [index,worker,manifest]) assert.match(source, /10\.3\.18/);
+ assert.match(worker, /const CACHE='ofa-10-3-18'/);
  assert.match(worker, /scrapbook-complete-10-3-17\.js/);
- assert.match(manifest, /index\.html\?v=10\.3\.17/);
+ assert.match(manifest, /index\.html\?v=10\.3\.18/);
 });
