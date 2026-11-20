@@ -101,9 +101,8 @@ test('Realtime Database trip creation requires an active member to own the trip'
 });
 
 test('Firestore remains closed to signed-in and unauthenticated clients', async () => {
-  // Firestore document references require an even number of path segments.
-  await assertFails(env.unauthenticatedContext().firestore().doc('families/familyA/private/docs/privateDoc').get());
-  await assertFails(env.authenticatedContext('member').firestore().doc('families/familyA/private/docs/privateDoc').get());
+  await assertFails(env.unauthenticatedContext().firestore().doc('families/familyA/docs/privateDoc').get());
+  await assertFails(env.authenticatedContext('member').firestore().doc('families/familyA/docs/privateDoc').get());
 });
 
 test('Storage allows a member to upload their own image only within their family', async () => {
